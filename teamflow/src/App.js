@@ -1,23 +1,127 @@
-import logo from './logo.svg';
+import React, { useState } from 'react';
 import './App.css';
+import { BrowserRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom';
+import axios from 'axios';  // axios 라이브러리 추가
+import Swal from 'sweetalert2';  // sweetalert2로 오류 메시지 처리
+import Join from './join'; 
+import Find from './find';  
 
-function App() {
+
+const Home= () => {  
+  let title = 'TeamFlow';
+  const navigate = useNavigate();
+
+  const [id, setId] = useState('');
+  const [pw, setPw] = useState('');
+  const saveUserId = (e) => {
+    setId(e.target.value);};
+
+  // 사용자 비밀번호 저장 함수
+  const saveUserPw = (e) => {
+    setPw(e.target.value);
+  };
+
+function Login() {
+  // 로그인 요청 시 콘솔로 입력된 값 확인
+  console.log("로그인 시도:", id, pw);
+  // 실제 로그인 로직 추가 (서버와의 통신)
+  axios.post('/api/auth/token', {
+    username: id,
+    password: pw
+  })
+  .then((response) => {
+    if (response.status === 200) {
+      localStorage.setItem('id', id);
+      localStorage.setItem('access_token', response.data.access_token);
+      navigate(`/main/${id}`);  // 로그인 후 메인 페이지로 이동
+      console.log("로그인 성공");
+    } else {
+      Swal.fire({
+        icon: 'error',
+        title: '로그인 실패',
+        text: '아이디나 패스워드를 다시 확인해주세요!',
+      });
+    }
+  })
+  .catch((error) => {
+    console.error('로그인 요청 오류:', error);
+    Swal.fire({
+      icon: 'error',
+      title: '로그인 실패',
+      text: '아이디나 패스워드를 다시 확인해주세요!',
+    });
+  });
+};
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
+    <div className='white-line'>
+  <p style={{ color: 'black', fontSize: 53, fontWeight: 'bold', marginBottom:'16px',  textShadow: '2px 2px 5px rgba(0, 0, 0, 0.4)'}}>
+        {title}</p>
+    <div className='blue-box'>
+      <div className='gray-box'>
+      <div style={{ height: '13vh' }}></div>
+        <div className='hang'>
+          <p style={{ color: "black", fontSize: '20px',fontWeight:500  }}>ID</p>
+          <div style={{ width: '1vw' }}></div>
+          <input
+            className='input-name' style={{width:'22vw'}}
+            type='text'
+            placeholder='아이디를 입력하세요.'
+            value={id}
+            onChange={saveUserId}
+          />
+        </div>
+        <div style={{ height: '2vh' }}></div>
+        <div className='hang'>
+          <p style={{ color: "black", fontSize: '20px',fontWeight:500  }}>PW</p>
+          <div style={{ width: '1vw' }}></div>
+          <input
+            className='input-name' style={{width:'22vw'}}
+            type='password'
+            placeholder='비밀번호를 입력하세요.'
+            value={pw}
+            onChange={saveUserPw}
+          />
+        </div>
+        <div style={{ height: '5vh' }}></div>
+        <button className="login-gray" style={{ fontSize: "32px", fontWeight:500 }} onClick={Login}>
+          로그인
+        </button>
+        <div style={{ height: '8vh' }}></div>
+        <button
+          className="login-gray"
+          style={{ fontSize: "18px", color:'gray'}}
+         onClick={() => navigate("/find")}
+ >
+          아이디 찾기/비밀번호 재설정
+        </button>
+        <div style={{ height: '3.5vh'}}></div>
+        <button
+          className="login-gray"
+          style={{ fontSize: "18px", color: "gray" }}
+          onClick={() => navigate("/join")}
         >
-          Learn React
-        </a>
-      </header>
+         만약 TeamFlow가 처음이라면?
+        </button>
+      </div>
+      </div>
+    </div>
+  );
+}
+
+
+const App= () => {
+  return (
+    <div className='white-line'>
+<BrowserRouter>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/join" element={<Join />} />
+          <Route path="/find" element={<Find />} />
+
+          
+        </Routes>
+      </BrowserRouter>
     </div>
   );
 }

@@ -36,3 +36,103 @@
     transform: rotate(360deg);
   }
 }
+
+.white-line {
+  width: 100vw; /* 화면의 너비 전체 */
+  height: 100vh; /* 화면의 높이 전체 */
+  display: flex;
+  flex-direction: column;
+
+  justify-content: center; /* 수평 중앙 정렬 */
+  align-items: center; /* 수직 중앙 정렬 */
+  position: relative;
+}
+
+.gray-box {
+  width: 42vw;
+  height: 36vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ECECEC;
+  border-radius: 12px;
+  flex-direction: column;
+  padding-top: 5vh;
+  padding-bottom: 3vh;
+}
+
+
+.blue-box {
+  width: 45vw;
+  height: 50vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #D6E6F5;
+  border-radius: 15px;
+  flex-direction: column;
+}
+
+.hang {
+  flex-direction: row;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.input-name {
+  font-size: 20px;
+  font-family: "";
+  color: #8A8A8A;
+  width: 35vw;
+  height: 5vh;
+  border-radius: 10px;
+  border: none;
+  outline: none;
+  padding-left: 10px;
+  position: relative;
+  background-color: white;
+}
+.login-gray {
+  color: black;
+  text-decoration: none;
+  text-shadow: 5px 5px 5px rgba(0, 0, 0, 0.3);
+  background-color: transparent;
+  outline: none;
+  border: none;
+  cursor: pointer;
+  font-family: 'SUIT';
+  font-weight: 500;
+
+}
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5); /* 반투명 검은색 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.popup-content {
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  width: 55vw; 
+  height: 25vh;
+}
+
+.close-button {
+  top: 1vh;
+  right: 1.5vh;
+  border: none;
+  font-size: 20px;
+  background-color: transparent;
+  z-index: 100; 
+
+}
