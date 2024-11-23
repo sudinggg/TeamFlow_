@@ -5,7 +5,7 @@ import axios from 'axios';  // axios 라이브러리 추가
 import Swal from 'sweetalert2';  // sweetalert2로 오류 메시지 처리
 import Join from './join'; 
 import Find from './find';  
-
+import Main from './main';
 
 const Home= () => {  
   let title = 'TeamFlow';
@@ -84,7 +84,8 @@ function Login() {
           />
         </div>
         <div style={{ height: '5vh' }}></div>
-        <button className="login-gray" style={{ fontSize: "32px", fontWeight:500 }} onClick={Login}>
+        <button className="login-gray" style={{ fontSize: "32px", fontWeight:500 }} onClick={() => navigate("/main")}
+ /*onClick={Login}*/>
           로그인
         </button>
         <div style={{ height: '8vh' }}></div>
@@ -118,6 +119,8 @@ const App= () => {
           <Route path="/" element={<Home />} />
           <Route path="/join" element={<Join />} />
           <Route path="/find" element={<Find />} />
+          <Route path="/main" element={<Main />} />
+
 
           
         </Routes>

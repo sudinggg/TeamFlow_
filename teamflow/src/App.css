@@ -136,3 +136,23 @@
   z-index: 100; 
 
 }
+.custom-scrollbar {
+  max-height: 15vh;
+  overflow-y: auto;
+
+  scrollbar-gutter: stable; /* 스크롤바 공간 항상 확보 (브라우저 지원 시) */
+  padding-right: 10px;
+  box-sizing: content-box; /* 패딩 포함 설정 */
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px; /* 스크롤바 너비 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent; /* 트랙 배경 투명 */
+}
+
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none; /* 위아래 화살표 버튼 숨기기 */
+}
