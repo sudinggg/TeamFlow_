@@ -2,62 +2,40 @@ import React from 'react';
 
 function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
     const generateCalendar = () => {
-        const firstDayOfMonth = new Date(year, month - 1, 1).getDay(); // 시작 요일
-        const daysInMonth = new Date(year, month, 0).getDate(); // 해당 월의 총 일수
+        const firstDayOfMonth = new Date(year, month - 1, 1).getDay();
+        const daysInMonth = new Date(year, month, 0).getDate(); 
         const dates = [];
-        for (let i = 0; i < firstDayOfMonth; i++) {
-            dates.push(null);
-        }
-        for (let i = 1; i <= daysInMonth; i++) {
-            dates.push(i);
-        }
+        for (let i = 0; i < firstDayOfMonth; i++) {dates.push(null);}
+        for (let i = 1; i <= daysInMonth; i++) {dates.push(i);}
         return dates;
     };
-
     const dates = generateCalendar();
-
     const getDayColor = (index) => {
-        if (index === 0) return 'red';  // 일요일
-        if (index === 6) return 'blue'; // 토요일
-        return 'black'; // 평일은 검정색
+        if (index === 0) return 'red'; 
+        if (index === 6) return 'blue';
+        return 'black'; 
+    };
+
+    const teamColors = {
+        'TeamFlow': '#90C7FA', 
+        '수진이짱': '#F9D3E7',  
+        'Ewootz': '#ECFFCD',    
     };
 
     return (
         <div
             className="blue-box"
-            style={{
-                width: '42vw',
-                height: '82vh',
-                display: 'flex',
-                flexDirection: 'column',
-                marginTop: '-4.2vh',
-            }}
-        >
-            <div className="hang" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5vw' }}>
-                <button
-                    onClick={() => onMonthChange(-1)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '23px', color: 'gray' }}
-                >
-                    &lt;
-                </button>
-                <p
-                    style={{
-                        margin: '0',
-                        fontSize: '23px',
-                        fontWeight: 'bold',
-                        textAlign: 'center',
-                    }}
-                >
+            style={{width: '42vw', height: '80vh', display: 'flex', flexDirection: 'column',marginTop: '-4.2vh',
+            }} >
+            <div className="hang" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '0.7vw' }}>
+                <button onClick={() => onMonthChange(-1)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '23px', color: 'gray' }}
+                > &lt;</button>
+                <p style={{margin: '0', fontSize: '23px', fontWeight: 'bold',textAlign: 'center'  }} >
                     {year}년 {month}월
                 </p>
-                <button
-                    onClick={() => onMonthChange(1)}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '23px', color: 'gray' }}
-                >
-                    &gt;
-                </button>
-            </div>
-            <div
+                <button   onClick={() => onMonthChange(1)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '23px', color: 'gray' }}
+                > &gt; </button>
+            </div> <div
                 style={{
                     display: 'grid',
                     gridTemplateColumns: 'repeat(7, 1fr)',
@@ -78,7 +56,7 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
                     </div>
                 ))}
             </div>
-        
+
             <div
                 style={{
                     flex: 1,
@@ -86,7 +64,7 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
                     gridTemplateColumns: 'repeat(7, 1fr)',
                     textAlign: 'center',
                     gap: '0.4vw',
-                    fontSize:'15px'
+                    fontSize: '15px'
                 }}
             >
                 {dates.map((date, index) => {
@@ -96,6 +74,7 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
                     const isToday = date === day && year === new Date().getFullYear() && month === new Date().getMonth() + 1;
                     const dateEvents = events[formattedDate] || [];
                     const dayColor = getDayColor(new Date(year, month - 1, date).getDay());  // 날짜 색을 요일에 맞게 설정
+
                     return (
                         <div
                             key={index}
@@ -142,20 +121,22 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
                             )}
 
                             {dateEvents.slice(0, 3).map((event, eventIndex) => {
-                                if (!event) return null; // 이벤트가 없으면 렌더링하지 않음
+                                if (!event) return null; 
                                 const truncatedEvent =
-                                    event.length > 5 ? `${event.slice(0, 5)}...` : event; // 문구 길이 제한
+                                    event.event.length > 5 ? `${event.event.slice(0, 5)}...` : event.event; 
+                                const teamColor = teamColors[event.teamname] || '#ffffff';
+
                                 return (
                                     <span
                                         key={eventIndex}
                                         style={{
                                             width: '4.3vw',
                                             fontSize: '11px',
-                                            backgroundColor: '#e9ecef',
+                                            backgroundColor: teamColor, 
                                             borderRadius: '4px',
                                             padding: '1px 2px',
                                             marginTop: '0.6vh',
-                                            color: 'black', // 업무 내용 텍스트를 항상 검정색으로 설정
+                                            color: 'black',
                                         }}
                                     >
                                         {truncatedEvent}

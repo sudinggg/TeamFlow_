@@ -9,8 +9,14 @@ function Main() {
 
     const [events, setEvents] = useState({});
     const [showPopup, setShowPopup] = useState(false);
+    const [showUserPopup, setShowUserPopup] = useState(false); // 새로운 팝업 상태 추가
     const [selectedDate, setSelectedDate] = useState('');
-    const [userId, setUserId] = useState('');
+    const [userImage, setUserImage] = useState(''); // 사용자 이미지를 관리하는 state
+    const [username, setUsername] = useState('김수진');
+    const [useremail, setUserEmail] = useState('user@naver.com');
+    const [userjob, setUserjob] = useState('프론트엔드');
+
+    const [usertime, setUserTime] = useState('10:00~18:00'); // 사용자 시간 정보
 
     const today = new Date();
     const [year, setYear] = useState(today.getFullYear());
@@ -59,19 +65,45 @@ function Main() {
 
     useEffect(() => {
         const exampleEvents = {
-            '2024-11-01': ['회의 1', '프로젝트 발표'],
-            '2024-11-02': ['팀 점심', '업무 회의', 'ss'],
-            '2024-11-03': ['프로젝트 리뷰'],
-            '2024-11-05': ['출장'],
-            '2024-11-06': ['디자인 검토'],
-            '2024-11-12': ['고객 미팅', '팀 워크숍', '프로젝트 발표', 'sssss', 'ddd','sssssa','wfadf'],
-            '2024-11-15': ['주간 회의'],
-            '2024-11-27': ['아아앙','ㄴㄴ','ㄴㄴㄴㄴ','주간 회의'],
+            '2024-11-01': [
+                { teamname: 'TeamFlow', event: '회의 1' },
+                { teamname: '수진이짱', event: '프로젝트 발표' }
+            ],
+            '2024-11-02': [
+                { teamname: 'Ewootz', event: '팀 점심' },
+                { teamname: 'TeamFlow', event: '업무 회의' }
+            ],
+            '2024-11-03': [
+                { teamname: '수진이짱', event: '프로젝트 리뷰' }
+            ],
+            '2024-11-05': [
+                { teamname: 'TeamFlow', event: '출장' }
+            ],
+            '2024-11-06': [
+                { teamname: 'Ewootz', event: '디자인 검토' }
+            ],
+            '2024-11-12': [
+                { teamname: 'TeamFlow', event: '고객 미팅' },
+                { teamname: '수진이짱', event: '팀 워크숍' }
+            ],
+            '2024-11-29': [
+                { teamname: 'Ewootz', event: '주간 회의' },
+                { teamname: 'Ewootz', event: '주간 회의' },
+
+                { teamname: 'Ewootz', event: '주간 회의' },
+
+                { teamname: 'Ewootz', event: '주간 회의' }
+
+            ]
         };
         setEvents(exampleEvents); // 예시 일정 데이터 설정
     }, []);
 
-
+    const teams = [
+        { name: 'TeamFlow', color: '#90C7FA' },
+        { name: '수진이짱', color: '#F9D3E7' },
+        { name: 'Ewootz', color: '#ECFFCD' },
+    ];
 
     return (
         <div className="white-line">
@@ -79,8 +111,7 @@ function Main() {
                 <p
                     style={{
                         color: 'black',
-                        fontSize: 53,
-                        fontWeight: 'bold',
+                        fontSize: 52,
                         marginTop: '1.6vh',
                         textShadow: '2px 2px 5px rgba(0, 0, 0, 0.4)',
                     }}
@@ -90,18 +121,22 @@ function Main() {
                 <button
                     style={{
                         position: 'absolute',
-                        top: '5vh',
+                        top: '7vh',
                         right: '5vw',
-                        width: '3.5vw',
-                        height: '6vh',
+                        width: '3.5vw',  
+                        height: '6vh', 
                         borderRadius: '50%',
                         border: 'none',
+                        backgroundImage: `url(${userImage})`,  // 사용자 이미지 설정
+                        backgroundSize: 'cover',  // 이미지가 버튼에 맞게 크기 조정
+                        backgroundPosition: 'center',
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
                         cursor: 'pointer',
                         boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
                     }}
+                    onClick={() => setShowUserPopup(true)} // 클릭 시 새로운 팝업 표시
                 ></button>
             </div>
 
@@ -114,12 +149,13 @@ function Main() {
                     openPopup={openPopup}
                     onMonthChange={handleMonthChange}
                 />
-
                 {showPopup && (
                     <div className="popup-overlay">
                         <div className="popup-content" style={{ width: '22vw', height: '50vh' }}>
                             <div className="hang" style={{ margin: '-1.2vh', justifyContent: 'space-between' }}>
-                                <p style={{fontSize:'18px',fontWeight:'700',paddingLeft:'1vw'}}>{`${new Date(selectedDate).getMonth() + 1}월 ${new Date(selectedDate).getDate()}일`}</p>
+                                <p style={{ fontSize: '18px', fontWeight: '700', paddingLeft: '1vw' }}>
+                                    {`${new Date(selectedDate).getMonth() + 1}월 ${new Date(selectedDate).getDate()}일`}
+                                </p>
                                 <button
                                     onClick={() => setShowPopup(false)}
                                     className="close-button"
@@ -128,7 +164,6 @@ function Main() {
                                     X
                                 </button>
                             </div>
-                            <div style={{ textAlign: 'left',paddingBottom:'1.7vh',paddingLeft:'1.5vw',fontSize:'17px'}}>{calculateDday(selectedDate)}</div>
                             <div
                                 style={{
                                     maxHeight: '40vh',
@@ -137,52 +172,157 @@ function Main() {
                                     display: 'flex',
                                     flexDirection: 'column',
                                     gap: '0.9vh',
-                                    marginLeft:'1vw',
-
+                                    marginLeft: '1vw',
                                 }}
                                 className="custom-scrollbar"
                             >
                                 {events[selectedDate] &&
-                                    events[selectedDate].map((event, index) => (
-                                        <div
-                                            key={index}
-                                            style={{
-                                                marginLeft:'1vw',
-                                                display: 'flex',
-                                                justifyContent: 'center',
-                                                alignItems: 'center',
-                                                width: '18vw',
-                                                height: '3vh',
-                                                padding: '13px',
-                                                borderRadius: '10px',
-                                                backgroundColor: '#f0f0f0',
-                                                fontSize: '14px',
-                                                textAlign: 'center',
-                                                margin: '5px auto',
-                                            }}
-                                        >
-                                            {event}
-                                        </div>
-                                    ))}
+                                    events[selectedDate].map((event, index) => {
+                                        const teamColor = teams.find(team => team.name === event.teamname)?.color || '#ffffff';
+                                        return (
+                                            <div
+                                                key={index}
+                                                style={{
+                                                    marginLeft: '1vw',
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    width: '18vw',
+                                                    height: '3vh',
+                                                    padding: '13px',
+                                                    borderRadius: '10px',
+                                                    backgroundColor: teamColor,
+                                                    fontSize: '14px',
+                                                    textAlign: 'center',
+                                                    margin: '5px auto',
+                                                }}
+                                            >
+                                                <div>{event.event}</div>
+                                            </div>
+                                        );
+                                    })}
                             </div>
                         </div>
                     </div>
                 )}
-                <div style={{ width: '3.5vw' }}></div>
 
+                {showUserPopup && (
+                    <div className="popup-overlay" style={{
+                        position: 'fixed',
+                        right: '2vw', // 오른쪽에서 2vw 만큼 떨어지게
+                        width: '100vw', // 전체 너비를 100%로 설정
+                        height: '100vh', // 전체 높이를 100%로 설정
+                        display: 'flex',
+                        justifyContent: 'flex-end', // 오른쪽 끝으로 정렬
+                        alignItems: 'flex-start', // 위쪽 끝으로 정렬
+                        zIndex: 9999, // 다른 요소보다 위에 표시되도록
+                    }}>
+                        <div className="popup-content" style={{
+                            width: '22vw', 
+                            height: '50vh', 
+                            backgroundColor: '#D6E6F5', 
+                            borderRadius: '10px', 
+                            marginTop: '11vh', 
+                            marginRight: '3vw', 
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            padding: '2vw',
+                        }}>
+                            <div className="hang" style={{ margin: '-1.2vh', justifyContent: 'flex-end', width: '100%' }}>
+                                <button
+                                    onClick={() => setShowUserPopup(false)} 
+                                    className="close-button"
+                                    style={{ color: 'gray', fontSize: '15px' 
+                                    }}
+                                > 
+                                    X 
+                                </button>
+                            </div>
 
-                <div className="blue-box" style={{ width: '30vw', height: '60vh' }}>
-                    <div className="hang">
-                        <button style={{ marginBottom: '10px', width: '100%' }}>TeamFlow</button>
-                        <button style={{ marginBottom: '10px', width: '100%' }}>Ewootz</button>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <img 
+                                    src={userImage} 
+                                    alt="User" 
+                                    style={{
+                                        width: '6.5vw',  
+                                        height: '12vh', 
+                                        borderRadius: '50%', 
+                                        backgroundColor:'white',
+                                        marginBottom: '0.5vh'
+                                    }} 
+                                />
+                           <p style={{ fontWeight: 'bold', margin: '0.5vh' ,fontSize:'22px'}}>{username}</p>
+    <p style={{ margin: '2px 0' }}>{useremail}</p>
+    <p style={{ margin: '2px 0' }}>{userjob}</p>
+    <p style={{ margin: '2px 0' }}>{usertime}</p>
+                            </div>
+                            <div>
+                                <button  className='input-name' style={{width:'20vw',height:'5.5vh',borderRadius: '30px', fontSize:'18px',color:'black',  marginTop: '-5vh'}}> Manage your Account
+                                </button>
+                                <div>
+                                    <div style={{height:'1.3vh'}}></div>
+                                <button  className='input-name' style={{width:'20vw',height:'5.5vh',borderRadius: '30px', fontSize:'18px',color:'black'}}> Setting
+                                        
+                                </button>
+                            </div>
+                            <div>
+                                <button 
+                                    style={{
+                                        backgroundColor: 'transparent',
+                                        color: 'black',
+                                        padding: '10px 20px',
+                                        borderRadius: '5px',
+                                        border: 'none',
+                                    }}> sign out your account
+                                        
+                                </button>
+                            </div>
+                            </div>
+                        </div>
                     </div>
+                )}
+
+                <div style={{ width: '3.5vw' }}></div>
+                <div className="blue-box" style={{ width: '30vw', height: '60vh', backgroundColor: 'white' }}>
                     <div className="hang">
-                        <button style={{ marginBottom: '10px', width: '100%' }}>Team3</button>
-                        <button style={{ width: '100%' }}>+</button>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <button className="square-button" style={{ backgroundColor: teams[0]?.color, margin: '5px' }}></button>
+                            <p style={{ marginTop: '5px' }}>{teams[0]?.name}</p>
+                        </div>
+                        <div style={{ width: '3vw' }}></div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <button className="square-button" style={{ backgroundColor: teams[1]?.color, margin: '5px' }}></button>
+                            <p style={{ marginTop: '5px' }}>{teams[1]?.name}</p>
+                        </div>
+                    </div>
+                    <div style={{ height: '3vh' }}></div>
+                    <div className="hang">
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '50%' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <button className="square-button" style={{ backgroundColor: teams[2]?.color, margin: '5px' }}></button>
+                                <p style={{ marginTop: '5px' }}>{teams[2]?.name}</p>
+                            </div>
+                        </div>
+                        <div style={{ width: '3vw' }}></div>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '50%' }}>
+                            <button
+                                className="square-button"
+                                style={{
+                                    backgroundColor: '#D9D9D9',
+                                    margin: '5px',
+                                    transform: 'translateY(-2.8vh)',
+                                    fontSize: '40px',
+                                }}
+                            >
+                                +
+                            </button>
+                        </div>
                     </div>
                 </div>
+                <div style={{ height: '5vh' }}></div>
             </div>
-            <div style={{ height: '5vh' }}></div>
         </div>
     );
 }
