@@ -156,20 +156,20 @@ function Join() {
           <div className='blue-box'>
             <div className='gray-box'style={{margin:0}}>
               <div className='hang' style={{ paddingLeft: "1.5vw", marginTop:'0.1vh' }}>
-                <p style={{ color: "black", fontSize: '20px',fontWeight:500 }}>ID</p>
+                <p style={{ color: "black", fontSize: '20px',fontWeight:500 ,paddingLeft:'1.2vw' }}>ID</p>
                 <div style={{ width: '1vw' }}></div>
                 <input className='input-name' type='text' placeholder='아이디를 입력하세요.' value={id} onChange={saveUserId} style={{width:'29vw'}} />
                 <div style={{ width: '0.5vw' }}></div>
                 <button className="login-gray" style={{ fontSize: "15px" }} onClick={() => idCheck()}>중복확인</button>
               </div>
               <div className='hang'>
-                <p style={{ color: "black", fontSize: '20px',fontWeight:500 }}>PW</p>
+                <p style={{ color: "black", fontSize: '20px',fontWeight:500 ,paddingLeft:'1vw' }}>PW</p>
                 <div style={{ width: '1vw' }}></div>
                 <input className='input-name' type='text' placeholder='비밀번호를 입력하세요.' value={pw} onChange={saveUserPw}style={{width:'29vw'}}  />
                 <div style={{ width: "4vw",}}></div>
               </div>
               <div className='hang'>
-                <p style={{ color: "black", fontSize: '19px',fontWeight:'bold'}}>확인</p>
+                <p style={{ color: "black", fontSize: '19px',fontWeight:'bold',paddingLeft:'0.7vw' }}>확인</p>
                 <div style={{ width: '1vw' }}></div>
                 <div>
                   <input className='input-name' type='text' placeholder='비밀번호를 재입력하세요.' value={repw} onChange={saveUserRepw}style={{width:'29vw'}}  />
@@ -187,7 +187,7 @@ function Join() {
                 <button className="login-gray" style={{ fontSize: "15px",paddingRight:'1vw' }} onClick={() => emailCheck() }>중복확인</button>
               </div>
               <div className='hang'>
-                <p style={{ color: "black", fontSize: '19px',fontWeight:'bold' }}>이름</p>
+                <p style={{ color: "black", fontSize: '19px',fontWeight:'bold' ,paddingLeft:'0.8vw' }}>이름</p>
                 <div style={{ width: '1vw' }}></div>
                 <input className='input-name' type='text' placeholder='이름을 입력하세요.' value={name} onChange={saveUserName}style={{width:'29vw'}}  />
                 <div style={{ width: "4vw",}}></div>
