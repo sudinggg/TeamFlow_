@@ -64,7 +64,7 @@ function Login() {
           <p style={{ color: "black", fontSize: '20px',fontWeight:500  }}>ID</p>
           <div style={{ width: '1vw' }}></div>
           <input
-            className='input-name' style={{width:'22vw'}}
+            className='input-name' style={{width:'22vw',fontSize:'17px'}}
             type='text'
             placeholder='아이디를 입력하세요.'
             value={id}
@@ -76,7 +76,7 @@ function Login() {
           <p style={{ color: "black", fontSize: '20px',fontWeight:500  }}>PW</p>
           <div style={{ width: '1vw' }}></div>
           <input
-            className='input-name' style={{width:'22vw'}}
+            className='input-name' style={{width:'22vw',fontSize:'17px'}}
             type='password'
             placeholder='비밀번호를 입력하세요.'
             value={pw}
@@ -84,14 +84,14 @@ function Login() {
           />
         </div>
         <div style={{ height: '5vh' }}></div>
-        <button className="login-gray" style={{ fontSize: "32px", fontWeight:500 }} onClick={() => navigate("/main")}
+        <button className="login-gray" style={{ fontSize: "30px", fontWeight:500 }} onClick={() => navigate("/main")}
  /*onClick={Login}*/>
           로그인
         </button>
         <div style={{ height: '8vh' }}></div>
         <button
           className="login-gray"
-          style={{ fontSize: "18px", color:'gray'}}
+          style={{ fontSize: "17px", color:'gray'}}
          onClick={() => navigate("/find")}
  >
           아이디 찾기/비밀번호 재설정
@@ -99,7 +99,7 @@ function Login() {
         <div style={{ height: '3.5vh'}}></div>
         <button
           className="login-gray"
-          style={{ fontSize: "18px", color: "gray" }}
+          style={{ fontSize: "17px", color: "gray" }}
           onClick={() => navigate("/join")}
         >
          만약 TeamFlow가 처음이라면?
