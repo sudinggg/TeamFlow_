@@ -38,19 +38,18 @@
 }
 
 .white-line {
-  width: 100vw; /* 화면의 너비 전체 */
-  height: 100vh; /* 화면의 높이 전체 */
+  width: 100vw; 
+  height: 100vh;
   display: flex;
   flex-direction: column;
-
-  justify-content: center; /* 수평 중앙 정렬 */
-  align-items: center; /* 수직 중앙 정렬 */
+  justify-content: center; 
+  align-items: center; 
   position: relative;
 }
 
 .gray-box {
-  width: 42vw;
-  height: 36vh;
+  width: 44vw;
+  height: 39.5vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -63,8 +62,8 @@
 
 
 .blue-box {
-  width: 45vw;
-  height: 50vh;
+  width: 46.5vw;
+  height: 51.5vh;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -80,7 +79,7 @@
   align-items: center;
 }
 .input-name {
-  font-size: 20px;
+  font-size: 17px;
   font-family: "";
   color: #8A8A8A;
   width: 35vw;
@@ -110,7 +109,7 @@
   left: 0;
   width: 100vw;
   height: 100vh;
-  background-color: rgba(0, 0, 0, 0.5); /* 반투명 검은색 */
+  background-color: rgba(0, 0, 0, 0.5); 
   display: flex;
   justify-content: center;
   align-items: center;
@@ -135,4 +134,43 @@
   background-color: transparent;
   z-index: 100; 
 
+}
+.custom-scrollbar {
+  max-height: 15vh;
+  overflow-y: auto;
+
+  scrollbar-gutter: stable; 
+  padding-right: 10px;
+  box-sizing: content-box; 
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-button {
+  display: none; 
+}
+
+
+.square-button {
+  width: 7.5vw; 
+  height: 13vh;
+  color: white; 
+  border: none; 
+  border-radius: 10px;
+  font-size: 13px;
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  transition: background-color 0.3s ease;
+
+}
+
+.square-button:hover {
+  background-color: #ECECEC !important;
 }

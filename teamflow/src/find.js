@@ -1,9 +1,9 @@
 import './App.css';
 import { useState } from 'react';
-import { FaUser, FaLock } from 'react-icons/fa'; // react-icons 아이콘 사용
+import { FaUser, FaLock } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
-import axios from 'axios'; // axios 라이브러리 추가
+import axios from 'axios'; 
 
 function Find() {
   const [showPopup, setShowPopup] = useState(false);
@@ -153,7 +153,6 @@ function Find() {
     </div>
   );
 
-  // 기본 화면
   const renderDefault = () => (
     <div className="hang" style={{ paddingLeft: '1vh' }}>
       <button
