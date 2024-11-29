@@ -52,11 +52,10 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
             return `D-${daysDifference}`; // 남은 날짜
         }
     };
-
     const teams = [
-        { id: '1', name: 'Team A', color: 'red', member: ['Alice', 'Bob'] },
-        { id: '2', name: 'Team B', color: 'blue', member: ['Charlie', 'David'] },
-        { id: '3', name: 'Team C', color: 'green', member: ['Eve', 'Frank'] },
+        { id: '1', name: '수진이짱', color: 'red', member: ['Alice', 'Bob'] },
+        { id: '2', name: 'TeamFlow', color: 'blue', member: ['Charlie', 'David'] },
+        { id: '3', name: 'Ewootz', color: 'green', member: ['Eve', 'Frank'] },
       ];
 
     const openPopup = (date) => {
@@ -367,8 +366,7 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
             )}
                 <div style={{ width: '3.5vw' }}></div>
                 <div className="blue-box" style={{ width: '30vw', height: '60vh', backgroundColor: 'white' }}>
- {/* 위쪽 2개 버튼 */}
- <div className="hang" style={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <div className="hang" style={{ display: 'flex', justifyContent: 'space-between' }}>
     {Array(2)
         .fill(null)
         .map((_, index) => {
