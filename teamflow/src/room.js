@@ -7,6 +7,7 @@ import DM from './room/dm';
 import File from './room/file';
 import Member from './room/member';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
+import { FiPhone } from 'react-icons/fi'; 
 
 const Room = () => {
   const { teamId } = useParams(); 
@@ -15,6 +16,12 @@ const Room = () => {
     dm: false,
     meeting: false,
   });
+  const [showUserPopup, setShowUserPopup] = useState(false); 
+  const [userImage, setUserImage] = useState(''); 
+  const [username, setUsername] = useState('김수진');
+  const [useremail, setUserEmail] = useState('user@naver.com');
+  const [userjob, setUserjob] = useState('프론트엔드');
+  const [usertime, setUserTime] = useState('10:00~18:00');
   const [activeDropdownItem, setActiveDropdownItem] = useState(null);
 
 
@@ -49,7 +56,7 @@ const Room = () => {
   };
 
   const meetingItems = ['2024.11.07', '2024.11.14'];
-  const dmItems = ['Sudding', 'Yevvon'];
+  const dmItems = ['Sudding', 'Yevvon',];
 
   return (
     <div style={{ display: 'flex' }}>
@@ -57,16 +64,16 @@ const Room = () => {
         className="blue-box"
         style={{ height: '100vh', width: '19vw', borderRadius: '0px', float: 'left' }}
       >
-        <div className="hang" style={{ top:'-2vh' ,position: 'relative', height:'8vh', paddingRight: '4.5vw' }}>
+        <div className="hang" style={{ top:'-1vh' ,position: 'relative', height:'8vh', paddingRight: '3.5vw' }}>
           <div
             className="input-name" style={{ height: '5.5vh',
               width: '2.3vw',    borderRadius: '10px',   backgroundColor: team.color || 'transparent',
               marginRight: '1vw',  }}
           ></div><h1 style={{fontSize:'27px',paddingBottom:'0.5vh'}}>{team.name}</h1>
         </div>
-        <div style={{ height: '2vh' }}></div>
+        <div style={{ height: '1vh' }}></div>
         <div
-          style={{ height: '77vh', display: 'flex', flexDirection: 'column',alignItems: 'center', }}
+          style={{ height: '78vh', display: 'flex', flexDirection: 'column',alignItems: 'center', }}
         >
           <div>
             <button
@@ -122,8 +129,8 @@ const Room = () => {
   </div>
             </button>
             {dropdowns.meeting && (
-              <ul style={{     textAlign: 'center', listStyleType: 'none', 
-             marginTop: '0.5vh', marginLeft: '1vw', maxHeight: '20vh', overflowY: 'auto',  padding: 0,}}>
+              <ul  className="custom-scrollbar" style={{     textAlign: 'center', listStyleType: 'none', 
+             marginTop: '0.5vh', marginLeft: '0.5vw', maxHeight: '20vh', overflowY: 'auto',  padding: 0,}}>
                 {meetingItems.map((item) => (
                   <li
                     key={item}
@@ -163,10 +170,9 @@ const Room = () => {
       {dropdowns.dm ? <MdArrowDropDown /> : <MdArrowDropUp />}
     </div>
 
-
             </button>
             {dropdowns.dm && (
-              <ul style={{   textAlign: 'center',listStyleType: 'none', marginTop: '0.5vh', marginLeft: '1vw', maxHeight: '20vh', overflowY: 'auto', padding: 0,}}>
+              <ul  className="custom-scrollbar" style={{   textAlign: 'center',listStyleType: 'none', marginTop: '0.5vh', marginLeft: '0.5vw', maxHeight: '20vh', overflowY: 'auto', padding: 0,}}>
                 {dmItems.map((item) => (
                   <li
                     key={item}
@@ -188,6 +194,7 @@ const Room = () => {
               className="input-name"
               style={{
                 width: '19vw',
+                paddingRight:'1.2vw',
                 height: '5vh',
                 marginBottom: '1vh',
                 backgroundColor: '#D6E6F5'
@@ -227,13 +234,47 @@ const Room = () => {
 
       <div
         className="blue-box"
-        style={{
-          height: '100vh',
-          width: '81vw',
-          borderRadius: '0px',
-          backgroundColor: 'white',
+        style={{ height: '100vh',  width: '81vw',  borderRadius: '0px',   backgroundColor: 'white',
         }}
       >
+                   <div className="hang">
+                   {activeSection === 'chatting' && (
+      <div>
+        <button
+          style={{
+            position: 'absolute',
+            border: 'none',   background: 'none',
+            right: '7vw',
+            color: 'black',
+            top: '3.3vh',
+          }}
+        >
+          <FiPhone size={26} />
+        </button>
+      </div>
+    )}
+                    <div>
+                <button
+                    style={{
+                        position: 'absolute',
+                        top: '2vh',
+                        right: '3vw',
+                        width: '3vw',  
+                        height: '5.1vh', 
+                        borderRadius: '50%',
+                        border: 'none',
+                        backgroundImage: `url(${userImage})`,
+                        backgroundSize: 'cover', 
+                        backgroundPosition: 'center',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
+                    }}
+                    onClick={() => setShowUserPopup(true)} 
+                ></button></div>
+            </div>
         {activeSection === 'chatting' && <Chatting teamId={team.id} />}
         {activeSection === 'teamcalendar' && <TeamCalendar teamId={team.id} userId={userId} />}
         {activeSection.startsWith('dm') && <DM selectedItem={activeSection.split('_')[1]} teamId={team.id} />}
@@ -241,7 +282,47 @@ const Room = () => {
         {activeSection === 'file' && <File teamId={team.id} />}
              {activeSection === 'member' && <Member members={team.member} />} {/* Member 컴포넌트 렌더링 */}
 
-      
+             {showUserPopup && (
+                    <div className="popup-overlay" style={{ right: '2vw', justifyContent: 'flex-end', alignItems: 'flex-start',     }}>
+                        <div className="popup-content" style={{
+                            width: '22vw',   height: '50vh',  backgroundColor: '#D6E6F5',  borderRadius: '10px', 
+                            marginTop: '11vh', marginRight: '3vw', display: 'flex',   flexDirection: 'column',alignItems: 'center',
+                            justifyContent: 'space-between',  padding: '2vw',
+                        }}>
+                            <div className="hang" style={{ margin: '-1.2vh', justifyContent: 'flex-end', width: '100%' }}>
+                                <button
+                                    onClick={() => setShowUserPopup(false)} 
+                                    className="close-button"  style={{ color: 'gray', fontSize: '15px'   }}  >   
+                                       X 
+                                </button>
+                            </div>
+                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                                <img 
+                                    src={userImage}   alt="User" 
+                                    style={{ width: '6.5vw',  height: '12vh', borderRadius: '50%', backgroundColor:'white', marginBottom: '0.5vh'}} 
+                                />
+                           <p style={{ fontWeight: 'bold', margin: '0.5vh' ,fontSize:'22px'}}>{username}</p> 
+                           <p style={{ margin: '2px 0' }}>{useremail}</p> <p style={{ margin: '2px 0' }}>{userjob}</p>   <p style={{ margin: '2px 0' }}>{usertime}</p>
+                            </div>
+                            <div>
+                                <button  className='input-name' style={{width:'20vw',height:'5.5vh',borderRadius: '30px', fontSize:'18px',color:'black',  marginTop: '-5vh'}}> Manage your Account  </button>
+                                <div>
+                                    <div style={{height:'1.3vh'}}></div>
+                                <button  className='input-name' style={{width:'20vw',height:'5.5vh',borderRadius: '30px', fontSize:'18px',color:'black'}}> Setting   
+                                </button>
+                            </div>
+                            <div>
+                                <button 
+                                    style={{
+                                        backgroundColor: 'transparent', color: 'black', paddingTop: '2vh',  borderRadius: '5px',   border: 'none',
+                                    }}> sign out your account
+                                        
+                                </button>
+                            </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
       </div>
     </div>
   );
