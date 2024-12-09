@@ -5,12 +5,15 @@ import TeamCalendar from './room/teamcalendar';
 import Meeting from './room/meeting';
 import DM from './room/dm';
 import File from './room/file';
+import Call from './room/call';
 import Member from './room/member';
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import { FiPhone } from 'react-icons/fi'; 
 
 const Room = () => {
   const { teamId } = useParams(); 
+
+
   const [activeSection, setActiveSection] = useState('chatting');
   const [dropdowns, setDropdowns] = useState({
     dm: false,
@@ -248,6 +251,8 @@ const Room = () => {
             color: 'black',
             top: '3.3vh',
           }}
+          onClick={() => handleSectionChange('call')}  // teamId 포함한 URL로 이동
+
         >
           <FiPhone size={26} />
         </button>
@@ -281,6 +286,7 @@ const Room = () => {
         {activeSection.startsWith('meeting') && <Meeting selectedItem={activeSection.split('_')[1]} teamId={team.id} />}
         {activeSection === 'file' && <File teamId={team.id} />}
              {activeSection === 'member' && <Member members={team.member} />} {/* Member 컴포넌트 렌더링 */}
+             {activeSection === 'call' && <Call teamId={teamId} />}
 
              {showUserPopup && (
                     <div className="popup-overlay" style={{ right: '2vw', justifyContent: 'flex-end', alignItems: 'flex-start',     }}>

@@ -10,6 +10,15 @@ const Chatting = ({ teamId }) => {
   const textAreaRef = useRef(null); // 텍스트 영역 참조
   const chatContainerRef = useRef(null); // 채팅 메시지 영역 참조
 
+  // 오늘 날짜 가져오기
+  const getCurrentDate = () => {
+    const now = new Date();
+    const year = now.getFullYear().toString().slice(2); // 연도 뒤 두 자리
+    const month = String(now.getMonth() + 1).padStart(2, "0"); // 0부터 시작하므로 +1
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}.${month}.${day}`;
+  };
+
   // 메시지 추가 함수
   const handleSendMessage = () => {
     if (newMessage.trim() !== "") {
@@ -52,16 +61,18 @@ const Chatting = ({ teamId }) => {
         height: "91.5vh",
         width: "79vw",
         backgroundColor: "white",
+        overflowX: "hidden", // 가로 스크롤 방지
       }}
     >
       {/* 채팅 메시지 영역 */}
       <div
-        ref={chatContainerRef} 
+        ref={chatContainerRef}
         className="custom-scrollbar"
         style={{
           maxHeight: "90vh",
           flex: 1,
           overflowY: "auto",
+          overflowX: "hidden", // 가로 스크롤 방지
           padding: "2vw",
           display: "flex",
           flexDirection: "column",
@@ -94,7 +105,7 @@ const Chatting = ({ teamId }) => {
               color: "#A0A0A0",
             }}
           >
-            24.11.07
+            {getCurrentDate()}
           </span>
         </div>
 
@@ -145,10 +156,9 @@ const Chatting = ({ teamId }) => {
               display: "flex",
               alignItems: "center",
               border: "0.9px solid black",
-              borderRadius: "50px",
+              borderRadius: "20px",
               width: "100%",
               padding: "0.5vw",
-              minHeight: "3vh",
             }}
           >
             {/* 첨부 버튼 */}
@@ -162,23 +172,22 @@ const Chatting = ({ teamId }) => {
               <AiOutlinePaperClip size={28} />
             </button>
 
-            {/* 텍스트 입력 필드 */}
             <textarea
               ref={textAreaRef}
               placeholder="메시지를 입력하세요..."
-              value={newMessage} 
+              value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)} // 값 변경 핸들링
               onKeyDown={handleKeyDown} // Enter 키 처리
               onInput={handleInput} // 입력 시 높이 자동 조정
               style={{
                 flex: 1,
-                padding: "10px 15px",
+                
                 border: "none", // border 제거
-                fontSize: "13.5px",
+                fontSize: "14px",
                 outline: "none",
-                resize: "none",
                 overflowY: "hidden", // 세로 스크롤 숨기기
-                height: "3vh", // 기본 높이
+                height: "1vh", // 기본 높이
+                resize: "none",
               }}
             />
             {/* 전송 버튼 */}

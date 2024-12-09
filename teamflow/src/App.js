@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';  // axios 라이브러리 추가
-import Swal from 'sweetalert2';  // sweetalert2로 오류 메시지 처리
+import axios from 'axios';  
+import Swal from 'sweetalert2';  
 import Join from './join'; 
 import Find from './find';  
 import Main from './main';
 import Room from "./room";
+import Call from './room/call'; // Call 경로 수정
 
 const Home= () => {  
   let title = 'TeamFlow';
@@ -122,9 +123,7 @@ const App= () => {
           <Route path="/find" element={<Find />} />
           <Route path="/main" element={<Main />} />
           <Route path="/room/:teamId" element={<Room />} />
-
-
-          
+          <Route path="/call/:teamId" element={<Call />} />
         </Routes>
       </BrowserRouter>
     </div>
