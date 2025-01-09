@@ -3,6 +3,9 @@ import { useEffect, useState } from 'react';
 import Calendar from './calendar'; 
 import { useNavigate } from 'react-router-dom';
 import { HexColorPicker } from 'react-colorful'; // react-colorful 추가
+import axios from 'axios';
+import Swal from 'sweetalert2';  // sweetalert2로 오류 메시지 처리
+
 
 function Main() {
     let title = 'TeamFlow';
@@ -18,9 +21,12 @@ function Main() {
     const [useremail, setUserEmail] = useState('user@naver.com');
     const [userjob, setUserjob] = useState('프론트엔드');
     const [usertime, setUserTime] = useState('10:00~18:00');
-    const [teamName, setTeamName] = useState('');
-    const [teamColor, setTeamColor] = useState('#000000'); // 초기 색상: 검정
-    const [teamMembers, setTeamMembers] = useState([]);
+
+    //const [teams, setTeams] = useState(Array(4).fill(null)); // 4개의 팀 관리
+const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 팀 인덱스
+    const [team_Name, setTeamName] = useState('');
+    const [team_Color, setTeamColor] = useState('#D6E6F5'); 
+    const [search_user, setSearchUser] = useState([]);
     const [colorPickerVisible, setColorPickerVisible] = useState(false); 
 
     const today = new Date();
@@ -46,6 +52,11 @@ function Main() {
             return `D-${daysDifference}`; // 남은 날짜
         }
     };
+    const teams = [
+        { id: '1', name: '수진이짱', color: 'red', member: ['Alice', 'Bob'] },
+        { id: '2', name: 'TeamFlow', color: 'blue', member: ['Charlie', 'David'] },
+        { id: '3', name: 'Ewootz', color: 'green', member: ['Eve', 'Frank'] },
+      ];
 
     const openPopup = (date) => {
         setSelectedDate(date);
@@ -63,61 +74,105 @@ function Main() {
             newMonth = 12;
             newYear -= 1;
         }
-
         setMonth(newMonth);
         setYear(newYear);
     };
 
+
+    const handleEnterKey2 = (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            specificFunction2(); // 엔터를 눌렀을 때 실행할 함수
+        }
+    };
+    const specificFunction2 = () => {
+        getSearch();
+    };
+
+    async function getSearch() {
+        axios.get('/api/search/?', {
+            params: { teamMembers: search_user },
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem("access_token")}`,
+                'Content-Type': 'application/json'
+            }
+        })
+            .then((response) => {
+                console.log(response.status);
+                if (response.status === 200) {
+                    const extractedUsernames = response.data?.map(user => user.username);
+                    setSearchUser(extractedUsernames);
+                    console.log('유저 검색 결과:', search_user);
+                }
+            })
+            .catch((error) => {
+                console.error('서치 목록 가져오기 실패:', error);
+            });
+    };
+
     useEffect(() => {
-        const exampleEvents = {
-            '2024-11-01': [
-                { teamname: 'TeamFlow', event: '회의 1' },
-                { teamname: '수진이짱', event: '프로젝트 발표' }
-            ],
-            '2024-11-02': [
-                { teamname: 'Ewootz', event: '팀 점심' },
-                { teamname: 'TeamFlow', event: '업무 회의' }
-            ],
-            '2024-11-03': [
-                { teamname: '수진이짱', event: '프로젝트 리뷰' }
-            ],
-            '2024-11-05': [
-                { teamname: 'TeamFlow', event: '출장' }
-            ],
-            '2024-11-06': [
-                { teamname: 'Ewootz', event: '디자인 검토' }
-            ],
-            '2024-11-12': [
-                { teamname: 'TeamFlow', event: '고객 미팅' },
-                { teamname: '수진이짱', event: '팀 워크숍' }
-            ],
-            '2024-11-29': [
-                { teamname: 'Ewootz', event: '주간 회의' },
-                { teamname: 'Ewootz', event: '주간 회의' },
-
-                { teamname: 'Ewootz', event: '주간 회의' },
-
-                { teamname: 'Ewootz', event: '주간 회의' }
-
-            ]
+        const getFormattedDate = (date) => {
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
         };
-        setEvents(exampleEvents); // 예시 일정 데이터 설정
-    }, []);
+    
+        const today = new Date();
+        const eventDate = getFormattedDate(today);
+    
+        const newEvents = {};
+        teams.forEach((team) => {
+            if (team && team.name) {
+                newEvents[eventDate] = [
+                    ...(newEvents[eventDate] || []),
+                    { teamname: team.name, event: `${team.name} 일정 test` }
+                ];
+            }
+        });
+    
+        // teams가 변경되었을 때만 setEvents 호출
+        if (JSON.stringify(newEvents) !== JSON.stringify(events)) {
+            setEvents(newEvents);  // 이벤트 업데이트
+        }
+    }, [teams, events]);  // teams와 events를 의존성으로 설정
+    
 
-    const teams = [
-        { name: 'TeamFlow', color: '#90C7FA' },
-        { name: '수진이짱', color: '#F9D3E7' },
-        { name: 'Ewootz', color: '#ECFFCD' },
-    ];
+  const handleTeamClick = (teamId) => {
+    navigate(`/room/${teamId}`); // 클릭한 팀의 ID로 이동
+  };
+
+    const saveTeamname = event => {
+        setTeamName(event.target.value);
+        console.log(event.target.value);
+      };
+    
+      const saveTeamMember = event => {
+        setSearchUser(event.target.value);
+        console.log(event.target.value);
+      };
+
  const addTeam = () => {
-        if (teamName && teamColor) {
-            teams.push({ name: teamName, color: teamColor });
+    if (team_Name && team_Color && setSearchUser.length >= 1) {
+        const newTeams = [...teams];
+        newTeams[selectedTeamIndex] = {
+            name: team_Name,
+            color: team_Color,
+            member: search_user
+        };
+       // setTeams(newTeams); // 팀 정보 업데이트
             setTeamName('');
-            setTeamColor('#000000');
-            setTeamMembers([]);
+            setTeamColor('#D6E6F5');
+            setSearchUser([]);
+            setSelectedTeamIndex(null); // 선택된 인덱스 초기화
+
             setTeamMakePopup(false);
         } else {
-            alert('팀 이름과 색상을 입력해주세요.');
+            Swal.fire({
+                icon: 'warning',
+                text: '팀 이름 공백이면 안되고 팀원이 1명이상인지 확인하소',
+            });
+        
         }
     };
     return (
@@ -165,14 +220,14 @@ function Main() {
                                 style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: '1vw', display: 'flex', flexDirection: 'column', gap: '0.9vh',marginLeft: '1vw',
                                 }}
                                 className="custom-scrollbar"   >
-                                {events[selectedDate] &&
-                                    events[selectedDate].map((event, index) => {
-                                        const teamColor = teams.find(team => team.name === event.teamname)?.color || '#ffffff';
+                              {events[selectedDate] && events[selectedDate].map((event, index) => {
+
                                         return (
                                             <div
                                                 key={index}
                                                 style={{  marginLeft: '1vw', display: 'flex', justifyContent: 'center',  alignItems: 'center', width: '18vw',height: '3vh',
-                                                    padding: '13px', borderRadius: '10px', backgroundColor: teamColor, fontSize: '14px',  textAlign: 'center', margin: '5px auto',
+                                                    padding: '13px', borderRadius: '10px',         backgroundColor: teams.find(team => team?.name === event.teamname)?.color || '#D6E6F5', // 색상 적용
+                                                    fontSize: '14px',  textAlign: 'center', margin: '5px auto',
                                                 }}
                                             >
                                                 <div>{event.event}</div>
@@ -193,14 +248,14 @@ function Main() {
                             <div className="hang" style={{ margin: '-1.2vh', justifyContent: 'flex-end', width: '100%' }}>
                                 <button
                                     onClick={() => setShowUserPopup(false)} 
-                                    className="close-button"  style={{ color: 'gray', fontSize: '15px'   }}
-                                >      X 
+                                    className="close-button"  style={{ color: 'gray', fontSize: '15px'   }}  >   
+                                       X 
                                 </button>
                             </div>
                             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                                 <img 
                                     src={userImage}   alt="User" 
-                                    style={{   width: '6.5vw',  height: '12vh', borderRadius: '50%', backgroundColor:'white', marginBottom: '0.5vh'}} 
+                                    style={{ width: '6.5vw',  height: '12vh', borderRadius: '50%', backgroundColor:'white', marginBottom: '0.5vh'}} 
                                 />
                            <p style={{ fontWeight: 'bold', margin: '0.5vh' ,fontSize:'22px'}}>{username}</p> 
                            <p style={{ margin: '2px 0' }}>{useremail}</p> <p style={{ margin: '2px 0' }}>{userjob}</p>   <p style={{ margin: '2px 0' }}>{usertime}</p>
@@ -215,11 +270,7 @@ function Main() {
                             <div>
                                 <button 
                                     style={{
-                                        backgroundColor: 'transparent',
-                                        color: 'black',
-                                        paddingTop: '2vh',
-                                        borderRadius: '5px',
-                                        border: 'none',
+                                        backgroundColor: 'transparent', color: 'black', paddingTop: '2vh',  borderRadius: '5px',   border: 'none',
                                     }}> sign out your account
                                         
                                 </button>
@@ -228,7 +279,7 @@ function Main() {
                         </div>
                     </div>
                 )}
-                   {showTeamMakePopup && (
+                {showTeamMakePopup && (
                 <div className="popup-overlay">
                     <div className="popup-content" style={{ width: '33vw', height: '64vh', backgroundColor: '#D6E6F5' }}>
                         <div className="hang" style={{ justifyContent: 'flex-end', width: '100%' }}>
@@ -242,27 +293,24 @@ function Main() {
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', paddingBottom: '0.7vh' }}>
 
-                            {/* Team name input */}
                             <div className="input-name" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', width: '30vw', height: '5.8vh', borderRadius: '27px', margin: '0.3vw' }}>
                                 <div className="hang" style={{ justifyContent: 'flex-start', display: 'flex', alignItems: 'center' }}>
                                     <div style={{ color: 'black' }}>
                                         Team name :
                                     </div>
                                     <div style={{ width: '0.4vw' }}></div>
-                                    <div className="input-name" style={{ textAlign: 'left', display: 'flex', alignItems: 'center', width: '20vw', height: '5.8vh', fontSize: '13px' }}>생성할 팀명을 입력해주세요</div>
+                                    <input className='input-name' type='text' placeholder='생성할 팀명을 입력해주세요' value={team_Name} onChange={saveTeamname}style={{ textAlign: 'left', display: 'flex', alignItems: 'center', width: '20vw', height: '5.5vh', fontSize: '13px' }}  />
+
                                 </div>
                             </div>
-
-                            {/* Team color input */}
                             <div className="input-name" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', width: '30vw', height: '5.8vh', borderRadius: '27px', margin: '0.3vw' }}>
                                 <div className="hang" style={{ justifyContent: 'flex-start', display: 'flex', alignItems: 'center' }}>
                                     <div style={{ color: 'black' }}>
                                         Team color :
                                     </div>
                                     <div style={{ width: '0.4vw' }}></div>
-                                    <div className="input-name" style={{ textAlign: 'left', display: 'flex', alignItems: 'center', width: '18.5vw', height: '5.8vh', fontSize: '13px' }}>
-                                        좌측 아이콘을 눌러 팀 색을 선택해주세요
-                                    </div>
+                                    <div className="input-name"  style={{ textAlign: 'left', display: 'flex', alignItems: 'center', width: '18.5vw', height: '5.8vh', fontSize: '13px' }}>
+                                    {team_Color || '좌측 아이콘을 눌러 팀 색을 선택해주세요'}                                    </div>
                                     <div>
                                         <button
                                             style={{
@@ -271,93 +319,164 @@ function Main() {
                                                 width: '2.6vw',
                                                 height: '5vh',
                                                 borderRadius: '100px',
-                                                backgroundColor: teamColor, // 선택된 색상 반영
+                                                backgroundColor: team_Color, 
                                                 border: 'none',
                                             }}
-                                            onClick={() => setColorPickerVisible(!colorPickerVisible)} // 색상 선택기 토글
+                                            onClick={() => setColorPickerVisible(!colorPickerVisible)} 
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            {/* Team member input */}
                             <div className="input-name" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', backgroundColor: 'white', width: '30vw', height: '5.8vh', borderRadius: '27px', margin: '0.3vw' }}>
                                 <div className="hang" style={{ justifyContent: 'flex-start', display: 'flex', alignItems: 'center' }}>
                                     <div style={{ color: 'black' }}>
                                         Team member :
                                     </div>
                                     <div style={{ width: '0.4vw' }}></div>
-                                    <div className="input-name" style={{ textAlign: 'left', display: 'flex', alignItems: 'center', width: '19vw', height: '5.8vh', fontSize: '13px' }}>
-                                        검색할 ID를 입력해주세요
-                                    </div>
+                                    <input className='input-name' type='text' placeholder='검색할 ID를 입력해주세요' value={search_user} onChange={saveTeamMember} onKeyDown={handleEnterKey2} style={{ textAlign: 'left', display: 'flex', alignItems: 'center', width: '19vw', height: '5.5vh', fontSize: '13px' }}  />
+
                                 </div>
                             </div>
-
-                            {/* Team member list */}
                             <div className="input-name" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', backgroundColor: 'white', width: '30vw', height: '33vh', borderRadius: '27px', marginTop: '1vh' }}>
                                 <div className="input-name" style={{ margin: '0.5vw', width: '28vw', height: '33vh' }}>
-                                    리스트
+                                    리스트 띄워야함 
                                 </div>
-                                <div>
-                                    <p style={{ fontSize: '10px', textAlign: 'left' }}>team member 추가 설정은 나중에도 가능합니다</p>
+                                <div style={{ width: '100%',  textAlign: 'right',paddingRight: '3vw' }}>
+                                    <p style={{fontSize:'10px'}}>
+                                        team member 추가 설정은 나중에도 가능합니다</p>
                                 </div>
                             </div>
                         </div>
-
-                        {/* Color Picker (if visible) */}
                         {colorPickerVisible && (
                             <div style={{ position: 'absolute', top:'18vh',right:'15vw',zIndex: 10 }}>
-                                <HexColorPicker color={teamColor} onChange={setTeamColor} />
+                                <HexColorPicker color={team_Color} onChange={setTeamColor} />
                             </div>
                         )}
-
-                        {/* Confirm button */}
-                        <div>
+                        <div style={{ textAlign: 'right',paddingRight: '1vw',paddingTop:'1vh' }}>
                             <button
                                 className="input-name"
                                 style={{ color: 'black', width: '7vw', height: '4.5vh' }}
-                                onClick={addTeam} // 팀 추가 버튼 클릭 시 addTeam 함수 실행
-                            >
+                                onClick={addTeam} >
                                 confirm
                             </button>
                         </div>
                     </div>
                 </div>
             )}
-        
-
                 <div style={{ width: '3.5vw' }}></div>
                 <div className="blue-box" style={{ width: '30vw', height: '60vh', backgroundColor: 'white' }}>
-                    <div className="hang">
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <button className="square-button" style={{ backgroundColor: teams[0]?.color, margin: '5px' }}></button>
-                            <p style={{ marginTop: '5px' }}>{teams[0]?.name}</p>
-                        </div>
-                        <div style={{ width: '3vw' }}></div>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                            <button className="square-button" style={{ backgroundColor: teams[1]?.color, margin: '5px' }}></button>
-                            <p style={{ marginTop: '5px' }}>{teams[1]?.name}</p>
-                        </div>
-                    </div> <div style={{ height: '3vh' }}></div>
-                    <div className="hang">
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '50%' }}>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <button className="square-button" style={{ backgroundColor: teams[2]?.color, margin: '5px' }}></button>
-                                <p style={{ marginTop: '5px' }}>{teams[2]?.name}</p>
-                            </div>
-                        </div>  <div style={{ width: '3vw' }}></div>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '50%' }}>
-                            <button    className="square-button"  style={{
-                                    backgroundColor: '#D9D9D9',
-                                    margin: '5px',
-                                    transform: 'translateY(-2.8vh)',
-                                    fontSize: '40px',
-                                }}    onClick={() => setTeamMakePopup(true)} > + </button>                
-                                   
+                    <div className="hang" style={{ display: 'flex', justifyContent: 'space-between' }}>
+    {Array(2)
+        .fill(null)
+        .map((_, index) => {
+            const team = teams[index]; // 해당 인덱스의 팀 정보를 변수로 저장
 
-                        </div>
-                    </div>
+            return (
+                <div
+                    key={index}
+                    onClick={() => {
+                        // 팀이 있을 경우, 해당 팀의 ID로 이동
+                        if (team) {
+                            console.log("Navigating to: ", team.id);  // 디버깅을 위해 콘솔에 출력
+                            setSelectedTeamIndex(index); // 선택한 팀 인덱스 설정
+
+                            handleTeamClick(team.id); // 팀 ID로 이동
+                        } else {
+                            // 팀이 없으면 팝업을 열기
+                            setTeamMakePopup(true); 
+                            setSelectedTeamIndex(index); // 선택한 팀 인덱스 설정
+                        }
+                    }}
+                    style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 1.3vw' }}
+                >
+                    <button
+                        className="square-button"
+                        style={{
+                            backgroundColor: team?.color || '#D9D9D9', // 팀이 없으면 기본 회색
+                            margin: '5px',
+                            fontSize: team ? '16px' : '40px', // 팀이 있으면 글자 작게, 없으면 크게
+                            position: 'relative',
+                            width: '7.5vw',
+                            height: '13vh',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                        }}
+                    >
+                        {team?.name ? '' : '+'} {/* 팀 이름이 있으면 빈 문자열, 없으면 '+' 표시 */}
+                    </button>
+
+                    {team && ( // 팀이 있을 경우에만 팀 이름 표시
+                        <p
+                            style={{
+                                paddingTop: '0.5vh',
+                                fontSize: '15px',
+                            }}
+                        >
+                            {team.name}
+                        </p>
+                    )}
                 </div>
+            );
+        })}
+</div>
+
+    <div style={{height:'6vh'}}></div>
+    <div className="hang" style={{ display: 'flex', justifyContent: 'space-between' }}>
+    {Array(2)
+    .fill(null)
+    .map((_, index) => {
+      const team = teams[index + 2] || {};  // index + 2에 해당하는 팀이 없을 경우 빈 객체로 설정
+
+      return (
+        <div
+          key={index + 2}
+          onClick={() => {
+            // 팀이 있을 경우 해당 팀의 ID로 이동
+            if (team && team.id) {
+              console.log("Navigating to: ", team.id);  // 디버깅을 위해 콘솔에 출력
+              setSelectedTeamIndex(index + 2); // 선택한 팀 인덱스 설정
+              handleTeamClick(team.id); // 팀 ID로 이동
+            } else {
+              // 팀이 없으면 팝업을 열기
+              setTeamMakePopup(true);
+              setSelectedTeamIndex(index + 2); // 선택한 팀 인덱스 설정
+            }
+          }}
+          style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 1.3vw' }}
+        >
+          <button
+            className="square-button"
+            style={{
+              backgroundColor: team.color || '#D9D9D9', // 팀이 없으면 기본 회색
+              margin: '5px',
+              fontSize: team.name ? '16px' : '40px', // 팀이 있으면 글자 작게, 없으면 크게
+              position: 'relative',
+              width: '7.5vw',
+              height: '13vh',
+            }}
+          >
+            {team.name ? '' : '+'} {/* 팀 이름이 있으면 빈 문자열, 없으면 '+' 표시 */}
+          </button>
+
+          {team.name && (
+            <p
+              style={{
+                marginTop: '0.5vh',
+                fontSize: '15px',
+              }}
+            >
+              {team.name}
+            </p>
+          )}
+        </div>
+      );
+    })}
+</div>
+</div>
+
+
                 <div style={{ height: '5vh' }}></div>
             </div>
         </div>

@@ -1,25 +1,27 @@
 import React, { useState } from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';  // axios 라이브러리 추가
-import Swal from 'sweetalert2';  // sweetalert2로 오류 메시지 처리
+import axios from 'axios';  
+import Swal from 'sweetalert2';  
 import Join from './join'; 
 import Find from './find';  
 import Main from './main';
+import Room from "./room";
+import Call from './room/call'; // Call 경로 수정
 
 const Home= () => {  
   let title = 'TeamFlow';
   const navigate = useNavigate();
-
   const [id, setId] = useState('');
   const [pw, setPw] = useState('');
-  const saveUserId = (e) => {
-    setId(e.target.value);};
 
-  // 사용자 비밀번호 저장 함수
-  const saveUserPw = (e) => {
-    setPw(e.target.value);
-  };
+  const saveUserId = (e) => setId(e.target.value);
+  const saveUserPw = (e) => setPw(e.target.value);
+
+  const teams = [
+    { id: "1", name: "팀A", color: "#FF5733", member: ["김수진", "이영희"] },
+    { id: "2", name: "팀B", color: "#33FF57", member: ["박준호", "김민수"] },
+];
 
 function Login() {
   // 로그인 요청 시 콘솔로 입력된 값 확인
@@ -61,7 +63,7 @@ function Login() {
       <div className='gray-box'>
       <div style={{ height: '13vh' }}></div>
         <div className='hang'>
-          <p style={{ color: "black", fontSize: '20px',fontWeight:500  }}>ID</p>
+          <p style={{ color: "black", fontSize: '20px',fontWeight:500,paddingLeft:'1vw'  }}>ID</p>
           <div style={{ width: '1vw' }}></div>
           <input
             className='input-name' style={{width:'22vw',fontSize:'17px'}}
@@ -120,9 +122,8 @@ const App= () => {
           <Route path="/join" element={<Join />} />
           <Route path="/find" element={<Find />} />
           <Route path="/main" element={<Main />} />
-
-
-          
+          <Route path="/room/:teamId" element={<Room />} />
+          <Route path="/call/:teamId" element={<Call />} />
         </Routes>
       </BrowserRouter>
     </div>

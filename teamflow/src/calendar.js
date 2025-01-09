@@ -17,9 +17,7 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
     };
 
     const teamColors = {
-        'TeamFlow': '#90C7FA', 
-        '수진이짱': '#F9D3E7',  
-        'Ewootz': '#ECFFCD',    
+     
     };
 
     return (
@@ -73,20 +71,20 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
                         : null;
                     const isToday = date === day && year === new Date().getFullYear() && month === new Date().getMonth() + 1;
                     const dateEvents = events[formattedDate] || [];
-                    const dayColor = getDayColor(new Date(year, month - 1, date).getDay());  // 날짜 색을 요일에 맞게 설정
+                    const dayColor = getDayColor(new Date(year, month - 1, date).getDay());
 
                     return (
                         <div
                             key={index}
-                            onClick={() => date && openPopup(formattedDate)} // 날짜 클릭 시 팝업 열기
+                            onClick={() => date && openPopup(formattedDate)} 
                             style={{
                                 backgroundColor: 'transparent',
-                                paddingTop: '0.3vh', 
+                                paddingTop: '0.1vh', 
                                 paddingBottom: '0.4vh',
                                 paddingLeft: '0.5vw',
                                 paddingRight: '0.5vw',
                                 width: '4vw',
-                                height: '4vh', // 높이를 고정하여 보기 편하게 수정
+                                height: '3vh', 
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'flex-start',
@@ -106,11 +104,11 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
                                         <div
                                             style={{
                                                 position: 'absolute',
-                                                top: '-0.25vw',
+                                                top: '-0.05vw',
                                                 left: '50%',
                                                 transform: 'translateX(-50%)',
-                                                width: '30px',
-                                                height: '30px',
+                                                width: '23px',
+                                                height: '23px',
                                                 backgroundColor: '#ffc107',
                                                 borderRadius: '50%',
                                             }}
@@ -125,17 +123,18 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
                                 const truncatedEvent =
                                     event.event.length > 5 ? `${event.event.slice(0, 5)}...` : event.event; 
                                 const teamColor = teamColors[event.teamname] || '#ffffff';
+                                
 
                                 return (
                                     <span
                                         key={eventIndex}
                                         style={{
-                                            width: '4.3vw',
+                                            width: '4.4vw',
                                             fontSize: '11px',
                                             backgroundColor: teamColor, 
                                             borderRadius: '4px',
                                             padding: '1px 2px',
-                                            marginTop: '0.6vh',
+                                            marginTop: '0.65vh',
                                             color: 'black',
                                         }}
                                     >
@@ -150,7 +149,7 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange }) {
                                         fontSize: '11px',
                                         color: '#007bff',
                                         cursor: 'pointer',
-                                        marginTop: '0.1vh',
+                                        marginTop: '0.11vh',
                                     }}
                                 >
                                     +{dateEvents.length - 3} more
