@@ -1,12 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AiOutlinePaperClip, AiOutlineSend } from "react-icons/ai";
 
-const Chatting = ({ teamId }) => {
+const Chatting = ({ teamId, onFileSend }) => {
+
   console.log("Current team ID:", teamId);
   const [messages, setMessages] = useState([
-    { id: 1, sender: "other", text: `안녕하세요 ${teamId} 번 채팅방입니다` }
+    { id: 1, sender: "other", text: `안녕하세요 ${teamId} 번 채팅방입니다` },
   ]);
   const [newMessage, setNewMessage] = useState(""); // 입력된 메시지 관리
+  const [attachedFiles, setAttachedFiles] = useState([]); // 첨부된 파일 관리
   const textAreaRef = useRef(null); // 텍스트 영역 참조
   const chatContainerRef = useRef(null); // 채팅 메시지 영역 참조
 
@@ -19,14 +21,24 @@ const Chatting = ({ teamId }) => {
     return `${year}.${month}.${day}`;
   };
 
+  // 파일 첨부 처리
+  const handleFileChange = (e) => {
+    const files = e.target.files;
+    setAttachedFiles([...attachedFiles, ...Array.from(files)]); // 첨부된 파일을 상태에 추가
+  };
+
   // 메시지 추가 함수
   const handleSendMessage = () => {
-    if (newMessage.trim() !== "") {
-      setMessages([
-        ...messages,
-        { id: messages.length + 1, sender: "me", text: newMessage },
-      ]);
+    if (newMessage.trim() !== "" || attachedFiles.length > 0) {
+      const newMessageData = {
+        id: messages.length + 1,
+        sender: "me",
+        text: newMessage,
+        files: attachedFiles, // 첨부된 파일을 메시지에 포함
+      };
+      setMessages([...messages, newMessageData]);
       setNewMessage(""); // 입력창 초기화
+      setAttachedFiles([]); // 첨부된 파일 초기화
     }
   };
 
@@ -51,6 +63,11 @@ const Chatting = ({ teamId }) => {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
   }, [messages]); // messages가 변경될 때마다 실행
+
+  // 이미지 파일인지 확인하는 함수
+  const isImageFile = (file) => {
+    return file && file.type.startsWith("image/");
+  };
 
   return (
     <div
@@ -127,6 +144,41 @@ const Chatting = ({ teamId }) => {
             }}
           >
             {message.text}
+            {/* 첨부된 파일 처리 */}
+            {message.files && message.files.length > 0 && (
+              <div>
+                <strong>첨부된 파일:</strong>
+                {message.files.map((file, index) => (
+                  <div key={index}>
+                    {isImageFile(file) ? (
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="첨부 이미지"
+                        style={{
+                          maxWidth: "200px",
+                          maxHeight: "200px",
+                          marginTop: "10px",
+                          borderRadius: "10px",
+                        }}
+                      />
+                    ) : (
+                      <a
+                        href={URL.createObjectURL(file)}
+                        download={file.name}
+                        style={{
+                          display: "inline-block",
+                          marginTop: "10px",
+                          color: "#007BFF",
+                          textDecoration: "none",
+                        }}
+                      >
+                        {file.name}
+                      </a>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         ))}
       </div>
@@ -162,16 +214,17 @@ const Chatting = ({ teamId }) => {
             }}
           >
             {/* 첨부 버튼 */}
-            <button
+            <input
+              type="file"
+              multiple
+              onChange={handleFileChange} // 파일 선택 시 처리
               style={{
                 border: "none",
                 background: "transparent",
                 cursor: "pointer",
+                padding: "0 10px",
               }}
-            >
-              <AiOutlinePaperClip size={28} />
-            </button>
-
+            />
             <textarea
               ref={textAreaRef}
               placeholder="메시지를 입력하세요..."
@@ -181,7 +234,6 @@ const Chatting = ({ teamId }) => {
               onInput={handleInput} // 입력 시 높이 자동 조정
               style={{
                 flex: 1,
-                
                 border: "none", // border 제거
                 fontSize: "14px",
                 outline: "none",
