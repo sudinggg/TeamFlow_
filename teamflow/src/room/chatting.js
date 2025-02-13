@@ -1,18 +1,14 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AiOutlinePaperClip, AiOutlineSend } from "react-icons/ai";
 
-const Chatting = ({ teamId, onFileSend }) => {
-
-  console.log("Current team ID:", teamId);
+const Chatting = ({ teamId }) => {
   const [messages, setMessages] = useState([
     { id: 1, sender: "other", text: `안녕하세요 ${teamId} 번 채팅방입니다` },
   ]);
-  const [newMessage, setNewMessage] = useState(""); // 입력된 메시지 관리
-  const [attachedFiles, setAttachedFiles] = useState([]); // 첨부된 파일 관리
-  const textAreaRef = useRef(null); // 텍스트 영역 참조
-  const chatContainerRef = useRef(null); // 채팅 메시지 영역 참조
-
-  // 오늘 날짜 가져오기
+  const [newMessage, setNewMessage] = useState("");
+  const [attachedFiles, setAttachedFiles] = useState([]); // 첨부된 파일 리스트
+  const textAreaRef = useRef(null);
+  const chatContainerRef = useRef(null);
   const getCurrentDate = () => {
     const now = new Date();
     const year = now.getFullYear().toString().slice(2); // 연도 뒤 두 자리
@@ -20,29 +16,37 @@ const Chatting = ({ teamId, onFileSend }) => {
     const day = String(now.getDate()).padStart(2, "0");
     return `${year}.${month}.${day}`;
   };
-
   // 파일 첨부 처리
   const handleFileChange = (e) => {
-    const files = e.target.files;
-    setAttachedFiles([...attachedFiles, ...Array.from(files)]); // 첨부된 파일을 상태에 추가
+    const files = Array.from(e.target.files);
+    setAttachedFiles([...attachedFiles, ...files]); // 기존 파일 유지하며 추가
   };
 
-  // 메시지 추가 함수
+  // 선택한 파일 삭제 기능
+  const removeFile = (index) => {
+    setAttachedFiles(attachedFiles.filter((_, i) => i !== index));
+  };
+
+  // 메시지 전송
   const handleSendMessage = () => {
     if (newMessage.trim() !== "" || attachedFiles.length > 0) {
       const newMessageData = {
         id: messages.length + 1,
         sender: "me",
         text: newMessage,
-        files: attachedFiles, // 첨부된 파일을 메시지에 포함
+        files: attachedFiles,
       };
       setMessages([...messages, newMessageData]);
-      setNewMessage(""); // 입력창 초기화
-      setAttachedFiles([]); // 첨부된 파일 초기화
+      setNewMessage("");
+      setAttachedFiles([]); // 파일 초기화
     }
   };
-
-  const handleInput = (e) => {
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) { 
+      e.preventDefault(); // 기본 엔터 줄바꿈 방지
+      handleSendMessage(); // 메시지 전송 함수 실행
+    }
+  };const handleInput = (e) => {
     const textarea = e.target;
     textarea.style.height = "3vh"; // 높이 초기화
 
@@ -50,24 +54,12 @@ const Chatting = ({ teamId, onFileSend }) => {
     textarea.style.height = `${Math.min(textarea.scrollHeight, maxHeight)}px`; // 최대 높이를 넘지 않도록 제한
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
-      e.preventDefault(); // 줄바꿈 방지
-      handleSendMessage(); // 메시지 전송
-    }
-  };
-
-  // 새로운 메시지가 추가될 때마다 스크롤을 하단으로 이동
+  
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
     }
-  }, [messages]); // messages가 변경될 때마다 실행
-
-  // 이미지 파일인지 확인하는 함수
-  const isImageFile = (file) => {
-    return file && file.type.startsWith("image/");
-  };
+  }, [messages]);
 
   return (
     <div
@@ -78,10 +70,10 @@ const Chatting = ({ teamId, onFileSend }) => {
         height: "91.5vh",
         width: "79vw",
         backgroundColor: "white",
-        overflowX: "hidden", // 가로 스크롤 방지
+        overflowX: "hidden",
       }}
     >
-      {/* 채팅 메시지 영역 */}
+      
       <div
         ref={chatContainerRef}
         className="custom-scrollbar"
@@ -89,14 +81,13 @@ const Chatting = ({ teamId, onFileSend }) => {
           maxHeight: "90vh",
           flex: 1,
           overflowY: "auto",
-          overflowX: "hidden", // 가로 스크롤 방지
+          overflowX: "hidden",
           padding: "2vw",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        {/* 날짜 기준으로 선 */}
-        <div
+           <div
           style={{
             flexDirection: "column",
             display: "flex",
@@ -126,122 +117,137 @@ const Chatting = ({ teamId, onFileSend }) => {
           </span>
         </div>
 
-        {/* 동적으로 메시지 렌더링 */}
         {messages.map((message) => (
           <div
             key={message.id}
             style={{
               alignSelf: message.sender === "me" ? "flex-end" : "flex-start",
-              backgroundColor:
-                message.sender === "me" ? "#D6E6F5" : "#D9D9D9",
-              color: "black",
+              backgroundColor: message.sender === "me" ? "#D6E6F5" : "#D9D9D9",
               padding: "10px 15px",
               borderRadius: "20px",
-              fontSize: "14px",
               marginBottom: "10px",
               maxWidth: "60%",
               position: "relative",
             }}
-          >
-            {message.text}
-            {/* 첨부된 파일 처리 */}
-            {message.files && message.files.length > 0 && (
-              <div>
-                <strong>첨부된 파일:</strong>
-                {message.files.map((file, index) => (
-                  <div key={index}>
-                    {isImageFile(file) ? (
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt="첨부 이미지"
-                        style={{
-                          maxWidth: "200px",
-                          maxHeight: "200px",
-                          marginTop: "10px",
-                          borderRadius: "10px",
-                        }}
-                      />
-                    ) : (
-                      <a
-                        href={URL.createObjectURL(file)}
-                        download={file.name}
-                        style={{
-                          display: "inline-block",
-                          marginTop: "10px",
-                          color: "#007BFF",
-                          textDecoration: "none",
-                        }}
-                      >
-                        {file.name}
-                      </a>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
+          >            {message.files &&
+              message.files.map((file, index) => (
+                <div key={index} style={{ marginTop: "1vh" }}>
+                  {file.type.startsWith("image/") ? (
+                    <img
+                      src={URL.createObjectURL(file)}
+                      alt="첨부 이미지"
+                      style={{ maxWidth: "90vw", maxHeight: "30vh", borderRadius: "10px" }}
+                    />
+                  ) : (
+                    <a href={URL.createObjectURL(file)} download={file.name} style={{ color: "#007BFF" }}>
+                      {file.name}
+                    </a>
+                  )}
+                </div>
+              ))}
+   {message.text}
           </div>
         ))}
       </div>
 
-      {/* 입력 영역 */}
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          padding: "1vw",
-          paddingLeft: "3.5vw",
-        }}
-      >
+      {/* 첨부된 파일 미리보기 */}
+      {attachedFiles.length > 0 && (
         <div
-          className="hang"
           style={{
             display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            width: "73vw",
+            flexWrap: "wrap",
+            padding: "1vw",
+            borderBottom: "1px solid #ccc",
+            backgroundColor: "#f8f8f8",
           }}
         >
-          {/* 텍스트 입력 필드와 버튼을 감싸는 컨테이너 */}
+          {attachedFiles.map((file, index) => (
+            <div key={index} style={{ position: "relative", margin: "5px" }}>
+              {file.type.startsWith("image/") ? (
+                <img
+                  src={URL.createObjectURL(file)}
+                  alt="미리보기"
+                  style={{ width: "80px", height: "80px", borderRadius: "10px", objectFit: "cover" }}
+                />
+              ) : (
+                <span>{file.name}</span>
+              )}
+              {/* 삭제 버튼 */}
+              <button
+                onClick={() => removeFile(index)}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  right: 0,
+background: "transparent", // 완전 투명하게 설정
+                  color: "white",
+                  border: "none",
+                  borderRadius: "50%",
+                  width: "2vw",
+                  height: "2vh",
+                  fontSize: "14px",
+                  cursor: "pointer",
+                }}
+              >
+                ❌
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* 입력 영역 */}
+      <div style={{ display: "flex", alignItems: "center", padding: "1vw", paddingLeft: "3.5vw" }}>
+        <div style={{ display: "flex", alignItems: "center", width: "73vw" }}>
           <div
             style={{
-              height: "auto",
               display: "flex",
               alignItems: "center",
               border: "0.9px solid black",
               borderRadius: "20px",
-              width: "100%",
+              width: "80vw",
               padding: "0.5vw",
             }}
           >
-            {/* 첨부 버튼 */}
-            <input
-              type="file"
-              multiple
-              onChange={handleFileChange} // 파일 선택 시 처리
+            {/* 첨부 파일 버튼 */}
+            <button
               style={{
                 border: "none",
                 background: "transparent",
                 cursor: "pointer",
                 padding: "0 10px",
               }}
+              onClick={() => document.getElementById("fileInput").click()}
+            >
+              <AiOutlinePaperClip size={24} />
+            </button>
+            <input
+              id="fileInput"
+              type="file"
+              multiple
+              onChange={handleFileChange}
+              style={{ display: "none" }}
             />
+
+            {/* 메시지 입력 */}
             <textarea
               ref={textAreaRef}
               placeholder="메시지를 입력하세요..."
               value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)} // 값 변경 핸들링
-              onKeyDown={handleKeyDown} // Enter 키 처리
-              onInput={handleInput} // 입력 시 높이 자동 조정
+              onKeyDown={handleKeyDown} // ✅ 추가
+               onInput={handleInput} // 입력 시 높이 자동 조정
+              onChange={(e) => setNewMessage(e.target.value)}
               style={{
                 flex: 1,
-                border: "none", // border 제거
+                border: "none",
                 fontSize: "14px",
                 outline: "none",
-                overflowY: "hidden", // 세로 스크롤 숨기기
-                height: "1vh", // 기본 높이
+                overflowY: "hidden",
+                height: "1vh",
                 resize: "none",
               }}
             />
+
             {/* 전송 버튼 */}
             <button
               style={{
