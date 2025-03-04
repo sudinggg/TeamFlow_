@@ -28,8 +28,37 @@ const File = ({ teamId }) => {
   console.log("Filtered files:", teamFiles); // 필터링된 파일 목록 출력
 
   return (
-    <div className="file-container">
-      <h2>Files for Team {teamId}</h2>
+    <div
+      style={{
+        paddingTop: '7.5vh',
+        display: 'flex',
+        flexDirection: 'column',
+        height: '88vh',
+        width: '76vw',
+        backgroundColor: 'white',
+        overflowX: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          flexDirection: 'column',
+          display: 'flex',
+          alignItems: 'center',
+          position: 'relative',
+        }}
+      >
+          <div className="hang" style={{ justifyContent: 'flex-start', width: '100%' }}>
+          <div style={{fontSize:'30px',paddingBottom:"1vh",marginRight:"1vw"}}>File </div>
+        </div>
+        <hr
+          style={{
+            width: '100%',
+            border: 'none',
+            borderTop: '1px solid #D9D9D9',
+            margin: '0.2vw',
+          }}
+        />
+      </div>
       <hr className="separator" />
       <div className="file-grid">
         {teamFiles.length > 0 ? (
