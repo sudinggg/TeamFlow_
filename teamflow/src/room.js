@@ -28,11 +28,41 @@ const Room = () => {
   const [activeDropdownItem, setActiveDropdownItem] = useState(null);
 
 
-  const teams = [
-    { id: '1', name: '수진이짱', color: 'red', member: ['수진이팀원', '수진팀원2'] },
-    { id: '2', name: 'TeamFlow', color: 'blue', member: ['팀플로우 팀원1', '팀플로우 팀원2'] },
-    { id: '3', name: 'Ewootz', color: 'green', member: ['이웃즈 팀원1', '이웃즈 팀원 2'] },
-  ];
+const teams = [
+  {
+    id: "1",
+    name: "수진이짱",
+    color: "red",
+    members: [
+      { name: "수진이팀원1", email: "team1@example.com", position: "Developer", color: "#FF5733" },
+      { name: "수진팀원2", email: "team2@example.com", position: "Designer", color: "#33A1FF" },
+      { name: "수진팀원3", email: "team3@example.com", position: "Manager", color: "#28A745" },
+      { name: "수진팀원4", email: "team4@example.com", position: "Tester", color: "#FFC107" },
+   
+      
+      
+    ],
+  },
+  {
+    id: "2",
+    name: "TeamFlow",
+    color: "blue",
+    members: [
+      { name: "팀플로우 팀원1", email: "flow1@example.com", position: "Frontend", color: "#6F42C1" },
+      { name: "팀플로우 팀원2", email: "flow2@example.com", position: "Backend", color: "#E83E8C" }
+    ],
+  },
+  {
+    id: "3",
+    name: "Ewootz",
+    color: "green",
+    members: [
+      { name: "이웃즈 팀원1", email: "ewootz1@example.com", position: "Project Manager", color: "#20C997" },
+      { name: "이웃즈 팀원2", email: "ewootz2@example.com", position: "QA Engineer", color: "#FD7E14" }
+    ],
+  },
+];
+
 
   const userId = 'sujin';  
   const team = teams.find((team) => team.id === teamId);  
@@ -59,7 +89,7 @@ const Room = () => {
   };
 
   const meetingItems = ['2024.11.07', '2024.11.14'];
-  const dmItems = ['Sudding', 'Yevvon',];
+  const dmItems = team.members.map((member) => member.name);
 
   return (
     <div style={{ display: 'flex' }}>
@@ -285,7 +315,7 @@ const Room = () => {
         {activeSection.startsWith('dm') && <DM selectedItem={activeSection.split('_')[1]} teamId={team.id} />}
         {activeSection.startsWith('meeting') && <Meeting selectedItem={activeSection.split('_')[1]} teamId={team.id} />}
         {activeSection === 'file' && <File teamId={team.id} />}
-             {activeSection === 'member' && <Member members={team.member} />} {/* Member 컴포넌트 렌더링 */}
+             {activeSection === 'member' && <Member members={team.members} />} {/* Member 컴포넌트 렌더링 */}
              {activeSection === 'call' && <Call teamId={teamId} />}
 
              {showUserPopup && (
