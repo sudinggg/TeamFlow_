@@ -21,12 +21,22 @@ const Room = () => {
   });
   const [showUserPopup, setShowUserPopup] = useState(false); 
   const [userImage, setUserImage] = useState(''); 
-  const [username, setUsername] = useState('김수진');
-  const [useremail, setUserEmail] = useState('user@naver.com');
-  const [userjob, setUserjob] = useState('프론트엔드');
-  const [usertime, setUserTime] = useState('10:00~18:00');
   const [activeDropdownItem, setActiveDropdownItem] = useState(null);
 
+  const users = [
+    { id: "1", name: "김수진", email: "user@naver.com", job: "프론트엔드", time: "10:00~18:00", color: "pink" },
+   
+];
+
+const userId = "1"; // 현재 로그인된 사용자 ID
+
+const loggedInUser = users.find(user => user.id === userId);
+// 동적으로 사용자 정보 할당
+const username = loggedInUser?.name || "사용자";
+const useremail = loggedInUser?.email || "이메일 없음";
+const userjob = loggedInUser?.job || "직책 없음";
+const usertime = loggedInUser?.time || "근무시간 없음";
+const userColor = loggedInUser?.color || "#D6E6F5";
 
 const teams = [
   {
@@ -38,9 +48,6 @@ const teams = [
       { name: "수진팀원2", email: "team2@example.com", position: "Designer", color: "#33A1FF" },
       { name: "수진팀원3", email: "team3@example.com", position: "Manager", color: "#28A745" },
       { name: "수진팀원4", email: "team4@example.com", position: "Tester", color: "#FFC107" },
-   
-      
-      
     ],
   },
   {
@@ -64,7 +71,6 @@ const teams = [
 ];
 
 
-  const userId = 'sujin';  
   const team = teams.find((team) => team.id === teamId);  
 
   if (!team) {
@@ -311,7 +317,7 @@ const teams = [
                 ></button></div>
             </div>
         {activeSection === 'chatting' && <Chatting teamId={team.id} />}
-        {activeSection === 'teamcalendar' && <TeamCalendar teamId={team.id} userId={userId} />}
+        {activeSection === 'teamcalendar' && <TeamCalendar teamId={team.id} userId={userId} teams={teams}userColor={userColor} />}
         {activeSection.startsWith('dm') && <DM selectedItem={activeSection.split('_')[1]} teamId={team.id} />}
         {activeSection.startsWith('meeting') && <Meeting selectedItem={activeSection.split('_')[1]} teamId={team.id} />}
         {activeSection === 'file' && <File teamId={team.id} />}
