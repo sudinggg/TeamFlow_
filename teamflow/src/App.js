@@ -18,10 +18,7 @@ const Home= () => {
   const saveUserId = (e) => setId(e.target.value);
   const saveUserPw = (e) => setPw(e.target.value);
 
-  const teams = [
-    { id: "1", name: "팀A", color: "#FF5733", member: ["김수진", "이영희"] },
-    { id: "2", name: "팀B", color: "#33FF57", member: ["박준호", "김민수"] },
-];
+ 
 
 function Login() {
   // 로그인 요청 시 콘솔로 입력된 값 확인
