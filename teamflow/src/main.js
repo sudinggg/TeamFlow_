@@ -21,6 +21,8 @@ function Main() {
     const [useremail, setUserEmail] = useState('user@naver.com');
     const [userjob, setUserjob] = useState('프론트엔드');
     const [usertime, setUserTime] = useState('10:00~18:00');
+    const [userId, setUserId] = useState(1); // 🔹 현재 로그인한 사용자 ID
+    const [userColor, setUserColor] = useState('#FFC0CB'); // 🔹 개인 일정 색상 지정
 
     //const [teams, setTeams] = useState(Array(4).fill(null)); // 4개의 팀 관리
 const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 팀 인덱스
@@ -52,11 +54,62 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
             return `D-${daysDifference}`; // 남은 날짜
         }
     };
-    const teams = [
-        { id: '1', name: '수진이짱', color: 'red', member: ['Alice', 'Bob'] },
-        { id: '2', name: 'TeamFlow', color: 'blue', member: ['Charlie', 'David'] },
-        { id: '3', name: 'Ewootz', color: 'green', member: ['Eve', 'Frank'] },
-      ];
+  const teams = [
+        { id: '1', name: '수진이짱', color: 'red' },
+        { id: '2', name: 'TeamFlow', color: 'blue' },
+        { id: '3', name: 'Ewootz', color: 'green' },
+    ];
+
+    // 🔹 개인 일정
+    const [userEvents, setUserEvents] = useState({
+        1: {
+            '2024-11-03': [{ event: '1:1 미팅', teamname: '개인 일정' }],
+            '2024-11-10': [{ event: '프로젝트 리뷰', teamname: '개인 일정' }],
+        },
+    });
+
+    // 🔹 팀 일정
+    const [teamEvents, setTeamEvents] = useState({
+        1: {
+            '2024-11-01': [{ event: '팀 미팅', teamname: '수진이짱' }],
+            '2024-11-15': [{ event: '팀 회식', teamname: '수진이짱' }],
+        },
+        2: {
+            '2024-11-02': [{ event: '팀 프로젝트', teamname: 'TeamFlow' }],
+            '2024-11-18': [{ event: '워크숍', teamname: 'TeamFlow' }],
+        },
+        3: {
+            '2024-11-05': [{ event: 'PM 회의', teamname: 'Ewootz' }],
+            '2024-11-20': [{ event: '테스트 진행', teamname: 'Ewootz' }],
+        },
+    });
+
+    // 🔹 전체 일정 업데이트 (팀 + 개인 일정)
+    useEffect(() => {
+        let mergedEvents = {};
+
+        // 🔹 팀 일정 추가
+        Object.keys(teamEvents).forEach((teamId) => {
+            Object.keys(teamEvents[teamId]).forEach((date) => {
+                mergedEvents[date] = [
+                    ...(mergedEvents[date] || []),
+                    ...teamEvents[teamId][date],
+                ];
+            });
+        });
+
+        // 🔹 개인 일정 추가 (로그인한 사용자 ID 기준)
+        if (userEvents && userEvents[userId]) {
+            Object.keys(userEvents[userId]).forEach((date) => {
+                mergedEvents[date] = [
+                    ...(mergedEvents[date] || []),
+                    ...userEvents[userId][date],
+                ];
+            });
+        }
+
+        setEvents(mergedEvents);
+    }, [teamEvents, userEvents, userId]);
 
     const openPopup = (date) => {
         setSelectedDate(date);
@@ -111,33 +164,31 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
     };
 
     useEffect(() => {
-        const getFormattedDate = (date) => {
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            return `${year}-${month}-${day}`;
-        };
+        let mergedEvents = {}; // 기존 events를 유지하지 않고 새로 병합
     
-        const today = new Date();
-        const eventDate = getFormattedDate(today);
-    
-        const newEvents = {};
-        teams.forEach((team) => {
-            if (team && team.name) {
-                newEvents[eventDate] = [
-                    ...(newEvents[eventDate] || []),
-                    { teamname: team.name, event: `${team.name} 일정 test` }
+        // 🔹 팀 일정 추가
+        Object.keys(teamEvents).forEach((teamId) => {
+            Object.keys(teamEvents[teamId]).forEach((date) => {
+                mergedEvents[date] = [
+                    ...(mergedEvents[date] || []),
+                    ...teamEvents[teamId][date], // 기존 팀 일정 추가
                 ];
-            }
+            });
         });
     
-        // teams가 변경되었을 때만 setEvents 호출
-        if (JSON.stringify(newEvents) !== JSON.stringify(events)) {
-            setEvents(newEvents);  // 이벤트 업데이트
+        // 🔹 개인 일정 추가
+        if (userEvents[userId]) {
+            Object.keys(userEvents[userId]).forEach((date) => {
+                mergedEvents[date] = [
+                    ...(mergedEvents[date] || []),
+                    ...userEvents[userId][date], // 개인 일정 추가
+                ];
+            });
         }
-    }, [teams, events]);  // teams와 events를 의존성으로 설정
     
-
+        setEvents(mergedEvents); // 병합된 일정 업데이트
+    }, [teamEvents, userEvents, userId]); // ✅ teams를 의존성에서 제외
+    
   const handleTeamClick = (teamId) => {
     navigate(`/room/${teamId}`); // 클릭한 팀의 ID로 이동
   };
@@ -203,7 +254,7 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
             </div>
 
             <div className="hang">
-                <Calendar  events={events}  year={year}   month={month}    day={day} openPopup={openPopup}    onMonthChange={handleMonthChange}      />
+                <Calendar  events={events}  year={year}   month={month}    day={day} openPopup={openPopup}    onMonthChange={handleMonthChange} teams={teams} userColor={userColor}   />
                 {showPopup && (
                     <div className="popup-overlay">
                         <div className="popup-content" style={{ width: '22vw', height: '50vh' }}>
@@ -220,13 +271,19 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
                                 style={{ maxHeight: '40vh', overflowY: 'auto', paddingRight: '1vw', display: 'flex', flexDirection: 'column', gap: '0.9vh',marginLeft: '1vw',
                                 }}
                                 className="custom-scrollbar"   >
-                              {events[selectedDate] && events[selectedDate].map((event, index) => {
+                       {events[selectedDate] &&
+                                events[selectedDate].map((event, index) => {
+                                    // 🔹 일정 색상 설정 (팀 일정은 팀 색상, 개인 일정은 개인 색상)
+                                    const team = teams.find((t) => t.name === event.teamname);
+                                    const eventColor =
+                                        event.teamname === '개인 일정' ? userColor : team?.color || '#D6E6F5';
 
                                         return (
                                             <div
                                                 key={index}
                                                 style={{  marginLeft: '1vw', display: 'flex', justifyContent: 'center',  alignItems: 'center', width: '18vw',height: '3vh',
-                                                    padding: '13px', borderRadius: '10px',         backgroundColor: teams.find(team => team?.name === event.teamname)?.color || '#D6E6F5', // 색상 적용
+                                                    padding: '13px', borderRadius: '10px',                                                  backgroundColor: eventColor,
+
                                                     fontSize: '14px',  textAlign: 'center', margin: '5px auto',
                                                 }}
                                             >
