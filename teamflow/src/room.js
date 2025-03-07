@@ -7,12 +7,12 @@ import DM from './room/dm';
 import File from './room/file';
 import Call from './room/call';
 import Member from './room/member';
+import UserPopup from './UserPopup'; 
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import { FiPhone } from 'react-icons/fi'; 
 
 const Room = () => {
   const { teamId } = useParams(); 
-
 
   const [activeSection, setActiveSection] = useState('chatting');
   const [dropdowns, setDropdowns] = useState({
@@ -28,14 +28,19 @@ const Room = () => {
    
 ];
 
+
 const userId = "1"; // 현재 로그인된 사용자 ID
 
 const loggedInUser = users.find(user => user.id === userId);
 // 동적으로 사용자 정보 할당
-const username = loggedInUser?.name || "사용자";
-const useremail = loggedInUser?.email || "이메일 없음";
-const userjob = loggedInUser?.job || "직책 없음";
-const usertime = loggedInUser?.time || "근무시간 없음";
+const user = {
+  name: loggedInUser?.name || "사용자",
+  email: loggedInUser?.email || "이메일 없음",
+  job: loggedInUser?.job || "직책 없음",
+  time: loggedInUser?.time || "근무시간 없음",
+  image: '',  // 사용자 이미지 URL (없으면 빈 값)
+};
+
 const userColor = loggedInUser?.color || "#D6E6F5";
 
 const teams = [
@@ -324,48 +329,17 @@ const teams = [
              {activeSection === 'member' && <Member members={team.members} />} {/* Member 컴포넌트 렌더링 */}
              {activeSection === 'call' && <Call teamId={teamId} />}
 
-             {showUserPopup && (
-                    <div className="popup-overlay" style={{ right: '2vw', justifyContent: 'flex-end', alignItems: 'flex-start',     }}>
-                        <div className="popup-content" style={{
-                            width: '22vw',   height: '50vh',  backgroundColor: '#D6E6F5',  borderRadius: '10px', 
-                            marginTop: '11vh', marginRight: '3vw', display: 'flex',   flexDirection: 'column',alignItems: 'center',
-                            justifyContent: 'space-between',  padding: '2vw',
-                        }}>
-                            <div className="hang" style={{ margin: '-1.2vh', justifyContent: 'flex-end', width: '100%' }}>
-                                <button
-                                    onClick={() => setShowUserPopup(false)} 
-                                    className="close-button"  style={{ color: 'gray', fontSize: '15px'   }}  >   
-                                       X 
-                                </button>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <img 
-                                    src={userImage}   alt="User" 
-                                    style={{ width: '6.5vw',  height: '12vh', borderRadius: '50%', backgroundColor:'white', marginBottom: '0.5vh'}} 
-                                />
-                           <p style={{ fontWeight: 'bold', margin: '0.5vh' ,fontSize:'22px'}}>{username}</p> 
-                           <p style={{ margin: '2px 0' }}>{useremail}</p> <p style={{ margin: '2px 0' }}>{userjob}</p>   <p style={{ margin: '2px 0' }}>{usertime}</p>
-                            </div>
-                            <div>
-                                <button  className='input-name' style={{width:'20vw',height:'5.5vh',borderRadius: '30px', fontSize:'18px',color:'black',  marginTop: '-5vh'}}> Manage your Account  </button>
-                                <div>
-                                    <div style={{height:'1.3vh'}}></div>
-                                <button  className='input-name' style={{width:'20vw',height:'5.5vh',borderRadius: '30px', fontSize:'18px',color:'black'}}> Setting   
-                                </button>
-                            </div>
-                            <div>
-                                <button 
-                                    style={{
-                                        backgroundColor: 'transparent', color: 'black', paddingTop: '2vh',  borderRadius: '5px',   border: 'none',
-                                    }}> sign out your account
-                                        
-                                </button>
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
-      </div>
+             <button
+          style={{
+            position: 'absolute', top: '2vh', right: '3vw', width: '3vw', height: '5.1vh',
+            borderRadius: '50%', border: 'none', backgroundImage: `url(${user.image})`,
+            backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer'
+          }}
+          onClick={() => setShowUserPopup(true)}
+        ></button>
+
+        {/* UserPopup 컴포넌트 추가 */}
+        <UserPopup isOpen={showUserPopup} onClose={() => setShowUserPopup(false)} user={user} />      </div>
     </div>
   );
 };

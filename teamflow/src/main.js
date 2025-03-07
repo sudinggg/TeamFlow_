@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { HexColorPicker } from 'react-colorful'; // react-colorful 추가
 import axios from 'axios';
 import Swal from 'sweetalert2';  // sweetalert2로 오류 메시지 처리
+import UserPopup from './UserPopup'; 
 
 
 function Main() {
@@ -22,7 +23,7 @@ function Main() {
     const [userjob, setUserjob] = useState('프론트엔드');
     const [usertime, setUserTime] = useState('10:00~18:00');
     const [userId, setUserId] = useState(1); // 🔹 현재 로그인한 사용자 ID
-    const [userColor, setUserColor] = useState('#FFC0CB'); // 🔹 개인 일정 색상 지정
+    const [userColor, setUserColor] = useState('#FFC0CB'); 
 
     //const [teams, setTeams] = useState(Array(4).fill(null)); // 4개의 팀 관리
 const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 팀 인덱스
@@ -54,6 +55,15 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
             return `D-${daysDifference}`; // 남은 날짜
         }
     };
+
+    const user = {
+        name: username,
+        email: useremail,
+        job: userjob,
+        time: usertime,
+        image: userImage || '',
+    };
+
   const teams = [
         { id: '1', name: '수진이짱', color: 'red' },
         { id: '2', name: 'TeamFlow', color: 'blue' },
@@ -186,8 +196,8 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
             });
         }
     
-        setEvents(mergedEvents); // 병합된 일정 업데이트
-    }, [teamEvents, userEvents, userId]); // ✅ teams를 의존성에서 제외
+        setEvents(mergedEvents); 
+    }, [teamEvents, userEvents, userId]);
     
   const handleTeamClick = (teamId) => {
     navigate(`/room/${teamId}`); // 클릭한 팀의 ID로 이동
@@ -295,47 +305,28 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
                         </div>
                     </div>
                 )}
-                {showUserPopup && (
-                    <div className="popup-overlay" style={{ right: '2vw', justifyContent: 'flex-end', alignItems: 'flex-start',     }}>
-                        <div className="popup-content" style={{
-                            width: '22vw',   height: '50vh',  backgroundColor: '#D6E6F5',  borderRadius: '10px', 
-                            marginTop: '11vh', marginRight: '3vw', display: 'flex',   flexDirection: 'column',alignItems: 'center',
-                            justifyContent: 'space-between',  padding: '2vw',
-                        }}>
-                            <div className="hang" style={{ margin: '-1.2vh', justifyContent: 'flex-end', width: '100%' }}>
-                                <button
-                                    onClick={() => setShowUserPopup(false)} 
-                                    className="close-button"  style={{ color: 'gray', fontSize: '15px'   }}  >   
-                                       X 
-                                </button>
-                            </div>
-                            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                                <img 
-                                    src={userImage}   alt="User" 
-                                    style={{ width: '6.5vw',  height: '12vh', borderRadius: '50%', backgroundColor:'white', marginBottom: '0.5vh'}} 
-                                />
-                           <p style={{ fontWeight: 'bold', margin: '0.5vh' ,fontSize:'22px'}}>{username}</p> 
-                           <p style={{ margin: '2px 0' }}>{useremail}</p> <p style={{ margin: '2px 0' }}>{userjob}</p>   <p style={{ margin: '2px 0' }}>{usertime}</p>
-                            </div>
-                            <div>
-                                <button  className='input-name' style={{width:'20vw',height:'5.5vh',borderRadius: '30px', fontSize:'18px',color:'black',  marginTop: '-5vh'}}> Manage your Account  </button>
-                                <div>
-                                    <div style={{height:'1.3vh'}}></div>
-                                <button  className='input-name' style={{width:'20vw',height:'5.5vh',borderRadius: '30px', fontSize:'18px',color:'black'}}> Setting   
-                                </button>
-                            </div>
-                            <div>
-                                <button 
-                                    style={{
-                                        backgroundColor: 'transparent', color: 'black', paddingTop: '2vh',  borderRadius: '5px',   border: 'none',
-                                    }}> sign out your account
-                                        
-                                </button>
-                            </div>
-                            </div>
-                        </div>
-                    </div>
-                )}
+           <button
+                    style={{
+                        position: 'absolute',
+                        top: '7vh',
+                        right: '5vw',
+                        width: '3.5vw',
+                        height: '6vh',
+                        borderRadius: '50%',
+                        border: 'none',
+                        backgroundImage: `url(${user.image})`,
+                        backgroundSize: 'cover',
+                        backgroundPosition: 'center',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
+                    }}
+                    onClick={() => setShowUserPopup(true)}
+                ></button>
+                            <UserPopup isOpen={showUserPopup} onClose={() => setShowUserPopup(false)} user={user} />
+
                 {showTeamMakePopup && (
                 <div className="popup-overlay">
                     <div className="popup-content" style={{ width: '33vw', height: '64vh', backgroundColor: '#D6E6F5' }}>
@@ -478,7 +469,6 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
             );
         })}
 </div>
-
     <div style={{height:'6vh'}}></div>
     <div className="hang" style={{ display: 'flex', justifyContent: 'space-between' }}>
     {Array(2)
