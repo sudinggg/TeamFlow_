@@ -8,6 +8,8 @@ import Find from './find';
 import Main from './main';
 import Room from "./room";
 import Call from './room/call'; // Call 경로 수정
+import MyPage from "./mypage";
+import Setting from "./setting";
 
 const Home= () => {  
   let title = 'TeamFlow';
@@ -121,6 +123,8 @@ const App= () => {
           <Route path="/main" element={<Main />} />
           <Route path="/room/:teamId" element={<Room />} />
           <Route path="/call/:teamId" element={<Call />} />
+          <Route path="/mypage" element={<MyPage />} /> 
+          <Route path="/setting" element={<Setting />} /> 
         </Routes>
       </BrowserRouter>
     </div>

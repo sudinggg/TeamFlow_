@@ -306,27 +306,14 @@ const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 �
                     </div>
                 )}
            <button
-                    style={{
-                        position: 'absolute',
-                        top: '7vh',
-                        right: '5vw',
-                        width: '3.5vw',
-                        height: '6vh',
-                        borderRadius: '50%',
-                        border: 'none',
-                        backgroundImage: `url(${user.image})`,
-                        backgroundSize: 'cover',
-                        backgroundPosition: 'center',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
+                    style={{ position: 'absolute',top: '7vh',right: '5vw',
+                        width: '3.5vw', height: '6vh',borderRadius: '50%',border: 'none',  backgroundImage: `url(${user.image})`, backgroundSize: 'cover',
+                        backgroundPosition: 'center',display: 'flex',justifyContent: 'center',alignItems: 'center',
+                        cursor: 'pointer', boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
                     }}
                     onClick={() => setShowUserPopup(true)}
                 ></button>
-                            <UserPopup isOpen={showUserPopup} onClose={() => setShowUserPopup(false)} user={user} />
-
+                <UserPopup isOpen={showUserPopup} onClose={() => setShowUserPopup(false)} user={user} />
                 {showTeamMakePopup && (
                 <div className="popup-overlay">
                     <div className="popup-content" style={{ width: '33vw', height: '64vh', backgroundColor: '#D6E6F5' }}>
