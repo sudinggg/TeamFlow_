@@ -8,12 +8,16 @@ import File from './room/file';
 import Call from './room/call';
 import Member from './room/member';
 import UserPopup from './UserPopup'; 
+import DMMain from './DMMain'; 
+import MeetingMain from './MeetingMain'; 
+
 import { MdArrowDropDown, MdArrowDropUp } from 'react-icons/md';
 import { FiPhone } from 'react-icons/fi'; 
 
 const Room = () => {
   const { teamId } = useParams(); 
-
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [meetingRecords, setMeetingRecords] = useState([]); 
   const [activeSection, setActiveSection] = useState('chatting');
   const [dropdowns, setDropdowns] = useState({
     dm: false,
@@ -22,23 +26,19 @@ const Room = () => {
   const [showUserPopup, setShowUserPopup] = useState(false); 
   const [userImage, setUserImage] = useState(''); 
   const [activeDropdownItem, setActiveDropdownItem] = useState(null);
-
   const users = [
     { id: "1", name: "김수진", email: "user@naver.com", job: "프론트엔드", time: "10:00~18:00", color: "pink" },
    
 ];
-
-
-const userId = "1"; // 현재 로그인된 사용자 ID
+const userId = "1";
 
 const loggedInUser = users.find(user => user.id === userId);
-// 동적으로 사용자 정보 할당
 const user = {
   name: loggedInUser?.name || "사용자",
   email: loggedInUser?.email || "이메일 없음",
   job: loggedInUser?.job || "직책 없음",
   time: loggedInUser?.time || "근무시간 없음",
-  image: '',  // 사용자 이미지 URL (없으면 빈 값)
+  image: '', 
 };
 
 const userColor = loggedInUser?.color || "#D6E6F5";
@@ -94,14 +94,65 @@ const teams = [
     }));
   };
 
+  const handleDMClick = () => {
+    setActiveSection('dmMain'); 
+    toggleDropdown('dm');
+  };
+  
   const handleDropdownItemClick = (section, item) => {
-    setActiveSection(`${section}_${item}`);  // 클릭한 항목의 섹션과 아이템 정보 저장
-    setActiveDropdownItem(item); // 선택된 li 항목 업데이트
+    if (section === 'dm') {
+      setActiveSection('dm'); 
+      setSelectedItem(item); 
+      setActiveDropdownItem(item);
+    } else {
+      setActiveSection(section);
+    }
   };
 
-  const meetingItems = ['2024.11.07', '2024.11.14'];
-  const dmItems = team.members.map((member) => member.name);
+  const handleMeetingClick = () => {
+    setDropdowns((prev) => ({
+      ...prev,
+      meeting: !prev.meeting, 
+    }));
+    setActiveSection('meetingMain');
+  };
+  
+const handleMeetingSelect = (title) => {
+  const record = meetingRecords.find((r) => r.title === title);
+  if (record) {
+    setActiveDropdownItem(title); 
+    setSelectedItem(null);
+    setTimeout(() => {
+      setSelectedItem(record);
+      setActiveSection('meeting'); 
+    }, 0);
+  }
+};
 
+const handleNewMeeting = () => {
+  setSelectedItem({ title: '', content: '' });
+  setActiveSection('meeting');
+};
+
+  const dmItems = team.members.map((member) => member.name);
+  
+  const handleSaveMeeting = (title, content) => {
+    if (!title.trim()) return;
+    const newRecord = { title, content };
+  
+    setMeetingRecords((prev) => {
+      const existingIndex = prev.findIndex((r) => r.title === title);
+      if (existingIndex !== -1) {
+        const updatedRecords = [...prev];
+        updatedRecords[existingIndex] = newRecord;
+        return updatedRecords;
+      }
+      return [...prev, newRecord]; 
+    });
+  
+    setActiveSection('meetingMain');
+  };
+  
   return (
     <div style={{ display: 'flex' }}>
       <div
@@ -151,70 +202,32 @@ const teams = [
             </button>
           </div>
           <div>
-            <button
-              className="input-name"
-              style={{
-                width: '10vw',
-                height: '5vh',
-                borderRadius:'0px',
-                marginBottom: '1vh',
-                backgroundColor: '#D6E6F5',
-                color: activeSection.startsWith('meeting') ? 'black' : 'gray',
-                borderBottom: dropdowns.meeting ? '0.5px solid gray' : 'none', 
-                display: 'flex',  
-                justifyContent: 'space-between',  
-                alignItems: 'center', 
-              }}
-              onClick={() => toggleDropdown('meeting')}
-            >
-              <div style={{paddingLeft:'2vw',fontSize:'17px'}}>Meeting</div> 
-  <div style={{ marginLeft: '2vw', marginTop: '4px' }}> 
-    {dropdowns.meeting ? <MdArrowDropDown /> : <MdArrowDropUp />}
-  </div>
-            </button>
-            {dropdowns.meeting && (
-              <ul  className="custom-scrollbar" style={{     textAlign: 'center', listStyleType: 'none', 
-             marginTop: '0.5vh', marginLeft: '0.5vw', maxHeight: '20vh', overflowY: 'auto',  padding: 0,}}>
-                {meetingItems.map((item) => (
-                  <li
-                    key={item}
-                    onClick={() => handleDropdownItemClick('meeting', item)}
-                    style={{
-                      color: activeDropdownItem === item ? 'black' : 'gray', 
-                      fontWeight: activeDropdownItem === item ? 'bold' : 'normal', 
-
-                    }}
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-
-          <div>
-            <button
-              className="input-name"
-              style={{
-                width: '10vw',
-                height: '5vh',
-                borderRadius:'0px',
-                marginBottom: '1vh',
-                backgroundColor: '#D6E6F5',
-                color: activeSection.startsWith('dm') ? 'black' : 'gray',
-                borderBottom: dropdowns.dm ? '0.5px solid gray' : 'none', 
-                display: 'flex',  
-                justifyContent: 'space-between',  
-                alignItems: 'center', 
-              }}
-              onClick={() => toggleDropdown('dm')}
-            >
-                <div style={{paddingLeft:'3vw',fontSize:'17px'}}>DM</div>  
-    <div style={{ marginLeft: '3.2vw', marginTop: '4px' }}> 
-      {dropdowns.dm ? <MdArrowDropDown /> : <MdArrowDropUp />}
-    </div>
-
-            </button>
+            <button className="input-name"
+              style={{ width: '10vw', height: '5vh', borderRadius: '0px', marginBottom: '1vh',  backgroundColor: '#D6E6F5', color: activeSection.startsWith('meeting') ? 'black' : 'gray',  borderBottom: dropdowns.meeting ? '0.5px solid gray' : 'none', 
+    display: 'flex',   justifyContent: 'space-between',    alignItems: 'center',  }} onClick={handleMeetingClick} >
+       <div style={{ paddingLeft: '2vw', fontSize: '17px' }}>Meeting</div>
+        <div style={{ marginLeft: '2vw', marginTop: '4px' }}>  {dropdowns.meeting ? <MdArrowDropDown /> : <MdArrowDropUp />}  </div></button>
+        {dropdowns.meeting && (
+     <ul  className="custom-scrollbar" style={{   textAlign: 'center',listStyleType: 'none', marginTop: '0.5vh', marginLeft: '0.5vw', maxHeight: '20vh', overflowY: 'auto', padding: 0,}}>
+    {meetingRecords.map((record) => (
+      <li  key={record.title}
+        onClick={() => handleMeetingSelect(record.title)}
+        style={{   color: activeDropdownItem === record.title ? 'black' : 'gray', fontWeight: activeDropdownItem === record.title ? 'bold' : 'normal',
+       }} >
+        {record.title}
+      </li>  ))}</ul>
+    )}
+    </div>      <div>
+         <button className="input-name" 
+         style={{ width: '10vw',height: '5vh', borderRadius: '0px', marginBottom: '1vh', backgroundColor: '#D6E6F5',
+          color: activeSection.startsWith('dm') ? 'black' : 'gray', borderBottom: dropdowns.dm ? '0.5px solid gray' : 'none', display: 'flex', 
+          justifyContent: 'space-between',  alignItems: 'center', }}
+          onClick={handleDMClick} >
+            <div style={{ paddingLeft: '3vw', fontSize: '17px' }}>DM</div>  
+            <div style={{ marginLeft: '3.2vw', marginTop: '4px' }}>
+               {dropdowns.dm ? <MdArrowDropDown /> : <MdArrowDropUp />}
+               </div>
+               </button>
             {dropdowns.dm && (
               <ul  className="custom-scrollbar" style={{   textAlign: 'center',listStyleType: 'none', marginTop: '0.5vh', marginLeft: '0.5vw', maxHeight: '20vh', overflowY: 'auto', padding: 0,}}>
                 {dmItems.map((item) => (
@@ -232,7 +245,6 @@ const teams = [
               </ul>
             )}
           </div>
-
           <div>
             <button
               className="input-name"
@@ -251,95 +263,56 @@ const teams = [
             </button>
           </div>
         </div>
-
         <div>
           <button
             className="input-name"
             style={{
-              borderRadius:'70px',
-              padding:0,
-              width: '2.7vw',
-              height: '5vh',
-              backgroundColor: activeSection === 'member' ? '#8A8A8A' : '#D9D9D9',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center', // 내용이 버튼의 중앙에 오도록 설정
-              transition: 'background-color 0.3s ease', 
-              left:'-5vw',
+              borderRadius:'70px', padding:0,width: '2.7vw',   height: '5vh',
+              backgroundColor: activeSection === 'member' ? '#8A8A8A' : '#D9D9D9',display: 'flex', justifyContent: 'center',
+              alignItems: 'center',transition: 'background-color 0.3s ease', left:'-5vw',
               color: activeSection === 'member' ? 'white' : 'white',
             }}
             onClick={() => handleSectionChange('member')}
           >
            <div style={{color:'black'}}>M</div> 
           </button>
-       
         </div>
       </div>
-
-      <div
-        className="blue-box"
-        style={{ height: '100vh',  width: '81vw',  borderRadius: '0px',   backgroundColor: 'white',
-        }}
-      >
-                   <div className="hang">
-                   {activeSection === 'chatting' && (
-      <div>
-        <button
-          style={{
-            position: 'absolute',
-            border: 'none',   background: 'none',
-            right: '7vw',
-            color: 'black',
-            top: '3.3vh',
-          }}
-          onClick={() => handleSectionChange('call')}  // teamId 포함한 URL로 이동
-
-        >
+      <div  className="blue-box" style={{ height: '100vh',  width: '81vw',  borderRadius: '0px',   backgroundColor: 'white',  }} >
+         <div className="hang">
+                {activeSection === 'chatting' && (
+                  <div>
+                    <button style={{position: 'absolute', border: 'none',   background: 'none', right: '7vw',color: 'black', top: '3.3vh', }}
+          onClick={() => handleSectionChange('call')} >
           <FiPhone size={26} />
-        </button>
-      </div>
-    )}
-                    <div>
+             </button>
+             </div>
+            )}     
+              <div>
                 <button
-                    style={{
-                        position: 'absolute',
-                        top: '2vh',
-                        right: '3vw',
-                        width: '3vw',  
-                        height: '5.1vh', 
-                        borderRadius: '50%',
-                        border: 'none',
-                        backgroundImage: `url(${userImage})`,
-                        backgroundSize: 'cover', 
-                        backgroundPosition: 'center',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        cursor: 'pointer',
-                        boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
+                    style={{ position: 'absolute',top: '2vh',
+                        right: '3vw',width: '3vw',   height: '5.1vh', borderRadius: '50%', border: 'none', backgroundImage: `url(${userImage})`,backgroundSize: 'cover', 
+                        backgroundPosition: 'center',display: 'flex',justifyContent: 'center',  alignItems: 'center',
+                        cursor: 'pointer',boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
                     }}
                     onClick={() => setShowUserPopup(true)} 
                 ></button></div>
             </div>
-        {activeSection === 'chatting' && <Chatting teamId={team.id} />}
-        {activeSection === 'teamcalendar' && <TeamCalendar teamId={team.id} userId={userId} teams={teams}userColor={userColor} />}
-        {activeSection.startsWith('dm') && <DM selectedItem={activeSection.split('_')[1]} teamId={team.id} />}
-        {activeSection.startsWith('meeting') && <Meeting selectedItem={activeSection.split('_')[1]} teamId={team.id} />}
-        {activeSection === 'file' && <File teamId={team.id} />}
-             {activeSection === 'member' && <Member members={team.members} />} {/* Member 컴포넌트 렌더링 */}
-             {activeSection === 'call' && <Call teamId={teamId} />}
-
-             <button
-          style={{
-            position: 'absolute', top: '2vh', right: '3vw', width: '3vw', height: '5.1vh',
-            borderRadius: '50%', border: 'none', backgroundImage: `url(${user.image})`,
-            backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer'
-          }}
+            {activeSection === 'chatting' && <Chatting teamId={team.id} />}
+            {activeSection === 'teamcalendar' && <TeamCalendar teamId={team.id} userId={userId} teams={teams}userColor={userColor} />}
+            {activeSection === 'dmMain' && (<DMMain teamId={team.id} teamMembers={team?.members || []} onSelectDM={(member) => handleDropdownItemClick('dm', member.name)} />)}
+              {activeSection === 'dm' && selectedItem && <DM selectedItem={selectedItem} teamId={team.id} />}
+              {activeSection === 'meetingMain' && (<MeetingMain meetingRecords={meetingRecords} onSelectMeeting={handleMeetingSelect} onNewMeeting={handleNewMeeting}/>
+            )}
+            {activeSection === 'meeting' && selectedItem && (<Meeting selectedItem={selectedItem} teamId={team.id} onSave={handleSaveMeeting} />)}
+            {activeSection === 'file' && <File teamId={team.id} />}
+            {activeSection === 'member' && <Member members={team.members} />} 
+            {activeSection === 'call' && <Call teamId={teamId} />}
+             <button style={{position: 'absolute', top: '2vh', right: '3vw', width: '3vw', height: '5.1vh',
+            borderRadius: '50%', border: 'none', backgroundImage: `url(${user.image})`,backgroundSize: 'cover', backgroundPosition: 'center', cursor: 'pointer'}}
           onClick={() => setShowUserPopup(true)}
         ></button>
-
-        {/* UserPopup 컴포넌트 추가 */}
-        <UserPopup isOpen={showUserPopup} onClose={() => setShowUserPopup(false)} user={user} />      </div>
+        <UserPopup isOpen={showUserPopup} onClose={() => setShowUserPopup(false)} user={user} />     </div>
     </div>
   );
 };
