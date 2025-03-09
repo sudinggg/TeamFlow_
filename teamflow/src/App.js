@@ -20,7 +20,6 @@ const Home= () => {
   const saveUserId = (e) => setId(e.target.value);
   const saveUserPw = (e) => setPw(e.target.value);
 
- 
 
 function Login() {
   // 로그인 요청 시 콘솔로 입력된 값 확인

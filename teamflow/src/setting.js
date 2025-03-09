@@ -10,7 +10,6 @@ const Setting = () => {
     <div style={{ width: "50vw", margin: "5vh auto", textAlign: "center" }}>
       <h1>설정</h1>
 
-      {/* 다크 모드 설정 */}
       <div style={{ marginBottom: "2vh" }}>
         <label>
           <input

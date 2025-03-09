@@ -22,80 +22,42 @@ const Member = ({ members }) => {
 
   const handleAddMember = (member) => {
     setTeamMembers((prevMembers) => [...prevMembers, member]);
-    setSearchTerm(''); // 검색어 초기화
-    setSearchResults([]); // 검색 결과 초기화
-    setTeamMakePopup(false); // 팝업 닫기
+    setSearchTerm(''); 
+    setSearchResults([]); 
+    setTeamMakePopup(false);
   };
 
   return (
     <div
-      style={{
-        paddingTop: '7.5vh',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '88vh',
-        width: '76vw',
-        backgroundColor: 'white',
-        overflowX: 'hidden',
+      style={{paddingTop: '7.5vh',display: 'flex',flexDirection: 'column',
+        height: '88vh',width: '76vw', backgroundColor: 'white',overflowX: 'hidden',
       }}
     >
       <div
-        style={{
-          flexDirection: 'column',
-          display: 'flex',
-          alignItems: 'center',
-          position: 'relative',
-        }}
-      >
+        style={{  flexDirection: 'column',display: 'flex',alignItems: 'center', position: 'relative', }} >
           <div className="hang" style={{ justifyContent: 'flex-start', width: '100%' }}>
           <div style={{fontSize:'30px',paddingBottom:"1vh",marginRight:"1vw"}}>Members </div>
           <button className='close-button' onClick={() => setTeamMakePopup(true)}>+</button>
         </div>
         <hr
-          style={{
-            width: '100%',
-            border: 'none',
-            borderTop: '1px solid #D9D9D9',
-            margin: '0.2vw',
-          }}
+          style={{ width: '100%',  border: 'none', borderTop: '1px solid #D9D9D9',  margin: '0.2vw', }}
         />
       </div>
-
-      {/* Team Members List */}
       <div
-        style={{
-          overflowY: 'auto',
-          maxHeight: '78vh', // 높이 제한
-          padding: '0.7vw',
-        }}
-      >
+        style={{ overflowY: 'auto',maxHeight: '78vh', padding: '0.7vw',
+        }} >
         {teamMembers?.map((member, index) => (
           <div
             key={index}
-            style={{
-              padding: '1vw',
-              borderBottom: '1px solid #D9D9D9',
-              marginBottom: '0.7vh',
-            }}
-          >
+            style={{ padding: '1vw', borderBottom: '1px solid #D9D9D9',marginBottom: '0.7vh', }} >
             <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                marginBottom: '1.5vh',
+              style={{display: 'flex',alignItems: 'center',marginBottom: '1.5vh',
               }}
             >
               <div
-                style={{
-                  width: '1.5vw',
-                  height: '1.5vw',
-                  borderRadius: '50%',
-                  backgroundColor: member.color || 'gray',
-                  marginRight: '1vw',
-                }}
+                style={{ width: '1.5vw', height: '1.5vw', borderRadius: '50%', backgroundColor: member.color || 'gray', marginRight: '1vw',  }}
               ></div>
-              <span style={{ fontWeight: 'bold', fontSize: '18px' }}>
-                {member.name}
+              <span style={{ fontWeight: 'bold', fontSize: '18px' }}> {member.name}
               </span>
             </div>
             <div style={{ fontSize: '15px', marginTop: '1vh', marginLeft: '4vw' }}>
@@ -107,13 +69,10 @@ const Member = ({ members }) => {
           </div>
         ))}
       </div>
-
       {showTeamMakePopup && (
         <div className="popup-overlay">
           <div
-            className="popup-content"
-            style={{ width: '33vw', height: '50vh', backgroundColor: '#D6E6F5' }}
-          >
+            className="popup-content" style={{ width: '33vw', height: '50vh', backgroundColor: '#D6E6F5' }} >
             <div className="hang" style={{ justifyContent: 'flex-end', width: '100%' }}>
               <button
                 onClick={() => setTeamMakePopup(false)}
@@ -123,9 +82,6 @@ const Member = ({ members }) => {
                 X
               </button>
             </div>
-
-            {/* Member Search Input */}
-
             <div style={{ padding: '1vw', textAlign: 'center' }}>
               <input 
               className='input-name'
@@ -138,41 +94,22 @@ const Member = ({ members }) => {
                 }}
               />
             </div>
-            
             <div style={{backgroundColor: 'white',padding: '0.2vw',paddingBottom:"1vh", maxHeight: '34vh', overflowY: 'auto', scrollbarWidth: 'none', width:"31vw",height:"34vh",msOverflowStyle: 'none', borderRadius: '27px',  marginLeft: '1vw',}}>
-  {searchResults.length > 0 ? (
-    searchResults.map((member, index) => (
-      <div
-        key={index}
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          padding: '1.3vw',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center' }}>
-          <div
-            style={{
-              width: '1.5vw',
-              height: '1.5vw',
-              borderRadius: '50%',
-              backgroundColor: member.color || 'gray',
-              marginRight: '1vw',
-            }}
-          ></div>
-          <span>{member.name}</span>
-        </div>
-        <button onClick={() => handleAddMember(member)}className="close-button"
-                style={{ color: 'gray', fontSize: '18px' }}
-              >
-                +</button>
-      </div>
-    ))
-  ) : (
-    <div>No members found</div>
-  )}
-</div>
-
+              {searchResults.length > 0 ? (searchResults.map((member, index) => (
+                 <div
+                 key={index}
+                 style={{
+                  display: 'flex',justifyContent: 'space-between',padding: '1.3vw',}} >
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <div style={{ width: '1.5vw',height: '1.5vw', borderRadius: '50%',backgroundColor: member.color || 'gray',
+              marginRight: '1vw', }} ></div>
+               <span>{member.name}</span>
+               </div>
+               <button onClick={() => handleAddMember(member)}className="close-button"
+                style={{ color: 'gray', fontSize: '18px' }} >+</button></div>
+               ))) : (
+               <div>No members found</div> )}
+               </div>
           </div>
         </div>
       )}

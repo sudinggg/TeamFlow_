@@ -1,6 +1,6 @@
 import './App.css';
 import { useEffect, useState } from 'react';
-import axios from 'axios';  // axios 라이브러리 추가
+import axios from 'axios';  
 import Swal from 'sweetalert2';  
 import { useNavigate } from 'react-router-dom';
 function Join() {
@@ -43,7 +43,7 @@ function Join() {
       }
     }, [pw, repw]);
     function idCheck() {
-        if (!id) {  // 아이디가 비어있는지 확인
+        if (!id) {
             Swal.fire({
               icon: 'error',
               title: '아이디를 적어주세요',
@@ -192,9 +192,8 @@ function Join() {
                 <input className='input-name' type='text' placeholder='이름을 입력하세요.' value={name} onChange={saveUserName}style={{width:'30vw'}}  />
                 <div style={{ width: "4vw",}}></div>
               </div>
-              
               <div className='hang'>
-                <button className="login-gray" style={{ fontSize: "25px",paddingTop:"1.5vh" }} onClick={() => Signup()}>가입하기</button>
+                <button className="login-gray" style={{ fontSize: "23px",paddingBottom:"3vh" }} onClick={() => Signup()}>가입하기</button>
               </div>
             </div>
           </div>
