@@ -46,7 +46,7 @@ function MyPage() {
         <div className='white-line'>
             <p 
                 style={{ color: 'black', fontSize: 53, fontWeight: 'bold', marginBottom: '16px', textShadow: '2px 2px 5px rgba(0, 0, 0, 0.4)' }} 
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/main')}
             >
                 {title}
             </p>
