@@ -33,17 +33,14 @@ const UserPopup = ({ isOpen, onClose, user }) => {
     <div className="popup-overlay" style={{ right: '2vw', justifyContent: 'flex-end', alignItems: 'flex-start' }}>
       <div className="popup-content"
         style={{
-          width: '22vw', height: '50vh', backgroundColor: '#D6E6F5', borderRadius: '10px',
+          width: '22vw', height: '43vh', backgroundColor: '#D6E6F5', borderRadius: '10px',
           marginTop: '11vh', marginRight: '3vw', display: 'flex', flexDirection: 'column',
           alignItems: 'center', justifyContent: 'space-between', padding: '2vw',
         }}>
-
-        {/* 닫기 버튼 */}
         <div className="hang" style={{ margin: '-1.2vh', justifyContent: 'flex-end', width: '100%' }}>
           <button onClick={onClose} className="close-button" style={{ color: 'gray', fontSize: '15px' }}> X </button>
         </div>
 
-        {/* 사용자 정보 */}
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <img
             src={user.image} alt="User"
@@ -55,33 +52,21 @@ const UserPopup = ({ isOpen, onClose, user }) => {
           <p style={{ margin: '2px 0' }}>{user.time}</p>
         </div>
 
-        {/* 계정 관리 및 설정 */}
         <div>
-          <button 
-            className='input-name' 
-            style={{ width: '20vw', height: '5.5vh', borderRadius: '30px', fontSize: '18px', color: 'black', marginTop: '-5vh' }}
-            onClick={() => navigate('/mypage')} // 🔹 MyPage로 이동
-          >
-            Manage your Account
-          </button>
-          <div style={{ height: '1.3vh' }}></div>
           <button 
             className='input-name' 
             style={{ width: '20vw', height: '5.5vh', borderRadius: '30px', fontSize: '18px', color: 'black' }}
-            onClick={() => navigate('/setting')} // 🔹 Setting으로 이동
+            onClick={() => navigate('/mypage')} 
           >
-            Setting
+            Manage your Account
           </button>
         </div>
-
-        {/* 로그아웃 버튼 */}
         <div>
           <button 
             style={{
-              backgroundColor: 'transparent', color: 'black', paddingTop: '2vh',
-              borderRadius: '5px', border: 'none'
+              backgroundColor: 'transparent', color: 'black', border: 'none'
             }}
-            onClick={handleLogout} // 🔹 로그아웃 함수 실행
+            onClick={handleLogout} 
           >
             Sign out your account
           </button>
