@@ -72,7 +72,6 @@ function Join() {
       });
       });
     }
-   // 이메일 중복 확인
   const emailCheck = () => {
     if (!email) {
       Swal.fire({
@@ -152,9 +151,9 @@ function Join() {
        {title}</p>
           <div className='blue-box'>
             <div className='gray-box'>
-              <div className='hang' style={{ paddingLeft: "1vh" }}>
+              <div className='hang' style={{ paddingLeft: "2vw" }}>
                 <p style={{ color: "black", fontSize: '20px',fontWeight:500 }}>ID</p>
-                <div style={{ width: '1vw' }}></div>
+                <div style={{ width: '1.2vw' }}></div>
                 <input className='input-name' type='text' placeholder='아이디를 입력하세요.' value={id} onChange={saveUserId} style={{width:'30vw'}} />
                 <div style={{ width: '0.6vw' }}></div>
                 <button className="login-gray" style={{ fontSize: "15px" }} onClick={() => idCheck()}>중복확인</button>
@@ -178,9 +177,9 @@ function Join() {
                 <div style={{ width: "4vw",}}></div>
               </div>
               <div style={{ height: '2vh' }}></div>
-              <div className='hang' style={{ paddingLeft: "1vh" }}>
+              <div className='hang' style={{ paddingLeft: "2vh" }}>
               <p style={{ color: "black", fontSize: '19px',fontWeight:'bold' }}>이메일</p>
-              <div style={{ width: '0.75vw' }}></div>
+              <div style={{ width: '0.8vw' }}></div>
                 <input className='input-name' type='text' placeholder='이메일을 입력하세요.' value={email} onChange={saveUserEmail} style={{width:'30vw'}} />
                 <div style={{ width: '0.6vw' }}></div>
                 <button className="login-gray" style={{ fontSize: "15px",paddingRight:'2vw' }} onClick={() => emailCheck() }>중복확인</button>
@@ -193,7 +192,7 @@ function Join() {
                 <div style={{ width: "4vw",}}></div>
               </div>
               <div className='hang'>
-                <button className="login-gray" style={{ fontSize: "23px",paddingBottom:"3vh" }} onClick={() => Signup()}>가입하기</button>
+                <button className="login-gray" style={{ fontSize: "21px",paddingBottom:"3vh" }} onClick={() => Signup()}>가입하기</button>
               </div>
             </div>
           </div>
