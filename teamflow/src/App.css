@@ -192,25 +192,21 @@
   margin-bottom: 5px;
 }
 
-.separator {
-  border: none;
-  height: 1px;
-  background: gray;
-  margin-bottom: 15px;
-}
 
 .file-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr); /* 3열 정렬 */
-  gap: 15px;
-  max-height: 400px; /* 스크롤 추가 */
+  gap: 1vw;
+  width: 76vw;
   overflow-y: auto;
-  padding: 10px;
+  padding: 1vw;
 }
 
 .file-item {
   background: #f0f0f0;
   padding: 15px;
+  width: 20vw;
+  height: 20vh;
   border-radius: 8px;
   text-align: center;
   cursor: pointer;

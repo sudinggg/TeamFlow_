@@ -27,20 +27,85 @@ const DM = ({ selectedItem, teamId }) => {
     setAttachedFiles(attachedFiles.filter((_, i) => i !== index));
   };
 
-  // 메시지 전송
-  const handleSendMessage = () => {
-    if (newMessage.trim() !== "" || attachedFiles.length > 0) {
+  const MAX_STORAGE_SIZE = 4500 * 1024; // 최대 4.5MB까지만 사용
+  // 기존 코드에서 누락된 변수 추가
+  const MAX_LOCAL_STORAGE_SIZE = 4500 * 1024; // 최대 4.5MB
+  
+    function cleanOldFiles() {
+        let storedFiles = JSON.parse(localStorage.getItem("teamFiles")) || [];
+    
+        while (JSON.stringify(storedFiles).length > MAX_STORAGE_SIZE) {
+            console.log(`🗑 오래된 파일 삭제: ${storedFiles[0].name}`);
+            storedFiles.shift(); // 가장 오래된 파일부터 삭제
+        }
+    
+        localStorage.setItem("teamFiles", JSON.stringify(storedFiles));
+        console.log("✅ 정리 후 localStorage 사용량:", JSON.stringify(storedFiles).length / 1024, "KB");
+    }
+    
+    cleanOldFiles(); // 오래된 파일 정리 실행
+
+
+    const handleSendMessage = async () => {
+      console.log("🔥 handleSendMessage 실행됨!");
+    
+      if (newMessage.trim() === "" && attachedFiles.length === 0) {
+        console.log("❌ 메시지와 파일이 모두 없음 → 저장 안 함!");
+        return;
+      }
+    
+      // ✅ Blob URL 생성 (파일 객체일 때만)
+      const blobFiles = attachedFiles.map((file) => {
+        if (file instanceof File) {
+          return {
+            name: file.name,
+            type: file.type,
+            url: URL.createObjectURL(file), // ✅ 파일 객체일 때만 Blob URL 생성
+            teamId: teamId,
+            recipient: selectedItem, // DM 상대방 정보 추가
+          };
+        }
+        return file; // 이미 변환된 파일이면 그대로 사용
+      });
+    
+      // ✅ 기존 데이터 불러오기
+      let storedDMFiles = JSON.parse(localStorage.getItem("dmFiles")) || [];
+      let storedTeamFiles = JSON.parse(localStorage.getItem("teamFiles")) || [];
+    
+      // ✅ 저장 전에 크기 검사 (로컬 스토리지 초과 방지)
+      if (JSON.stringify([...storedTeamFiles, ...blobFiles]).length > MAX_STORAGE_SIZE) {
+        console.warn("🚨 저장 공간 부족! 오래된 파일 정리 중...");
+        storedTeamFiles.shift(); // 가장 오래된 파일 삭제
+      }
+    
+      storedDMFiles = JSON.parse(localStorage.getItem("dmFiles")) || [];
+      storedTeamFiles = JSON.parse(localStorage.getItem("teamFiles")) || [];
+    
+      const updatedDMFiles = [...storedDMFiles, ...blobFiles];
+      const updatedTeamFiles = [...storedTeamFiles, ...blobFiles];
+    
+      // ✅ localStorage 저장 (📌 DM과 팀 파일 둘 다 저장)
+      localStorage.setItem("dmFiles", JSON.stringify(updatedDMFiles));
+      localStorage.setItem("teamFiles", JSON.stringify(updatedTeamFiles));
+    
+      console.log("📁 localStorage 저장됨!", updatedDMFiles, updatedTeamFiles);
+    
+      // ✅ UI 업데이트
       const newMessageData = {
         id: messages.length + 1,
         sender: "me",
         text: newMessage,
-        files: attachedFiles,
+        files: blobFiles,
       };
-      setMessages([...messages, newMessageData]);
+    
+      setMessages((prevMessages) => [...prevMessages, newMessageData]);
+    
+      // ✅ 입력 필드 초기화
       setNewMessage("");
-      setAttachedFiles([]); // 파일 초기화
-    }
-  };
+      setAttachedFiles([]);
+    };
+    
+    
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) { 
       e.preventDefault(); // 기본 엔터 줄바꿈 방지
@@ -145,22 +210,25 @@ const DM = ({ selectedItem, teamId }) => {
               maxWidth: "60%",
               position: "relative",
             }}
-          >            {message.files &&
-              message.files.map((file, index) => (
-                <div key={index} style={{ marginTop: "1vh" }}>
-                  {file.type.startsWith("image/") ? (
-                    <img
-                      src={URL.createObjectURL(file)}
-                      alt="첨부 이미지"
-                      style={{ maxWidth: "90vw", maxHeight: "30vh", borderRadius: "10px" }}
-                    />
-                  ) : (
-                    <a href={URL.createObjectURL(file)} download={file.name} style={{ color: "#007BFF" }}>
-                      {file.name}
-                    </a>
-                  )}
-                </div>
-              ))}
+          >           
+          
+          {message.files &&
+  message.files.map((file, index) => (
+    <div key={index} style={{ marginTop: "1vh" }}>
+      {file.type.startsWith("image/") ? (
+        <img
+          src={file.url} 
+          alt="첨부 이미지"
+          style={{ maxWidth: "90vw", maxHeight: "30vh", borderRadius: "10px" }}
+        />
+      ) : (
+        <a href={file.url} download={file.name} style={{ color: "#007BFF" }}>
+          📄 {file.name} 다운로드
+        </a>
+      )}
+    </div>
+  ))}
+
    {message.text}
           </div>
         ))}
@@ -209,62 +277,17 @@ background: "transparent", // 완전 투명하게 설정
           ))}
         </div>
       )}
-      <div style={{ display: "flex", alignItems: "center", padding: "1vw", paddingLeft: "3.5vw" }}>
+<div style={{ display: "flex", alignItems: "center", padding: "1vw", paddingLeft: "3.5vw" }}>
         <div style={{ display: "flex", alignItems: "center", width: "73vw" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              border: "0.9px solid black",
-              borderRadius: "20px",
-              width: "80vw",
-              padding: "0.5vw",
-            }}
-          >
-            <button
-              style={{
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-                padding: "0 10px",
-              }}
-              onClick={() => document.getElementById("fileInput").click()}
-            >
+          <div style={{ display: "flex", alignItems: "center", border: "0.9px solid black", borderRadius: "20px", width: "80vw", padding: "0.5vw" }}>
+            <button style={{ border: "none", background: "transparent", cursor: "pointer", padding: "0 10px" }} onClick={() => document.getElementById("fileInput").click()}>
               <AiOutlinePaperClip size={24} />
             </button>
-            <input
-              id="fileInput"
-              type="file"
-              multiple
-              onChange={handleFileChange}
-              style={{ display: "none" }}
-            />
-            <textarea
-              ref={textAreaRef}
-              placeholder="메시지를 입력하세요..."
-              value={newMessage}
-              onKeyDown={handleKeyDown} 
-               onInput={handleInput}
-              onChange={(e) => setNewMessage(e.target.value)}
-              style={{
-                flex: 1,
-                border: "none",
-                fontSize: "14px",
-                outline: "none",
-                overflowY: "hidden",
-                height: "1vh",
-                resize: "none",
-              }}
-            />
-            <button
-              style={{
-                border: "none",
-                background: "transparent",
-                cursor: "pointer",
-              }}
-              onClick={handleSendMessage}
-            >
+            <input id="fileInput" type="file" multiple onChange={handleFileChange} style={{ display: "none" }} />
+            <textarea ref={textAreaRef} placeholder="메시지를 입력하세요..." value={newMessage} onKeyDown={handleKeyDown} onChange={(e) => setNewMessage(e.target.value)} style={{ flex: 1, border: "none", fontSize: "14px", outline: "none", overflowY: "hidden", resize: "none" }} />
+            <button style={{ border: "none", background: "transparent", cursor: "pointer" }} onClick={handleSendMessage}>
               <AiOutlineSend size={28} />
+
             </button>
           </div>
         </div>
