@@ -78,11 +78,13 @@ function Calendar({ events, year, month, day, openPopup, onMonthChange, teams, u
     if (!event) return null;
 
     const truncatedEvent = event.event.length > 5 ? `${event.event.slice(0, 5)}...` : event.event;
+    console.log("📅 events:", events);
 
-    // 🔹 팀 일정이면 팀 색상, 개인 일정이면 userColor 적용
-    const eventColor = event.teamname === '개인 일정' ? userColor : 
-        (teams && teams.find(team => team.name === event.teamname)?.color) || '#ffffff';
-
+    const eventColor =
+    event.teamname === '개인 일정'
+      ? userColor
+      : event.color || '#ffffff'; // ✅ 이미 color를 넣었기 때문에 find 불필요
+  
     return (
         <span
             key={eventIndex}

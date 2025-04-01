@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import Calendar from '../calendar';
+import { useEffect } from 'react';
+import axios from 'axios';
 
 const TeamCalendarWrapper = ({ teamId, userId, teams, userColor }) => {
   const [viewType, setViewType] = useState('team'); 
@@ -7,30 +9,11 @@ const TeamCalendarWrapper = ({ teamId, userId, teams, userColor }) => {
     const [showAddPopup, setShowAddPopup] = useState(false);
     const [selectedDate, setSelectedDate] = useState(null);
     const [newEvent, setNewEvent] = useState('');
+    const [teamColors, setTeamColors] = useState({});
 
-    const [teamEvents, setTeamEvents] = useState({
-        1: {
-            '2024-11-01': [{ event: '팀 미팅', teamname: '수진이짱' }],
-            '2024-11-15': [{ event: '팀 회식', teamname: '수진이짱' }],
-        },
-        2: {
-            '2024-11-02': [{ event: '팀 프로젝트', teamname: 'TeamFlow' }],
-            '2024-11-18': [{ event: '워크숍', teamname: 'TeamFlow' }],
-        },
-        3: {
-            '2024-11-05': [{ event: 'PM 회의', teamname: 'Ewootz' }],
-            '2024-11-20': [{ event: '테스트 진행', teamname: 'Ewootz' }],
-        },
-    });
+    const [teamEvents, setTeamEvents] = useState({});
+    const [userEvents, setUserEvents] = useState({    });
 
-    const [userEvents, setUserEvents] = useState({
-        1: {
-            '2024-11-03': [{ event: '1:1 미팅', teamname: '개인 일정' }],
-            '2024-11-10': [{ event: '프로젝트 리뷰', teamname: '개인 일정' }],
-        },
-    });
-
-    // 현재 선택된 viewType에 따라 이벤트 가져오기
     const events = viewType === 'team' ? teamEvents[teamId] || {} : userEvents[userId] || {};
 
     // 날짜 정보
@@ -38,7 +21,20 @@ const TeamCalendarWrapper = ({ teamId, userId, teams, userColor }) => {
     const [year, setYear] = useState(today.getFullYear());
     const [month, setMonth] = useState(today.getMonth() + 1);
     const [day] = useState(today.getDate());
+    const [myColor, setMyColor] = useState(null); // 기본 색상
 
+    useEffect(() => {
+      const token = localStorage.getItem('access_token');
+      axios.get('/api/user/profile', {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+      .then((res) => {
+        console.log('🎨 프로필 정보:', res.data);
+        setMyColor(res.data.myColor || '#D6E6F5'); 
+      })
+      .catch(err => console.error('❌ 프로필 정보 불러오기 실패:', err));
+    }, []);
+    
     // 팝업 열기
     const openPopup = (date) => {
         setSelectedDate(date);
@@ -76,31 +72,115 @@ const TeamCalendarWrapper = ({ teamId, userId, teams, userColor }) => {
     const openAddPopup = () => {
         setShowAddPopup(true);
     };
-
-    // 할 일 추가 핸들러
     const addEvent = () => {
-      if (newEvent.trim() === '') return;
+        if (newEvent.trim() === '') return;
+    
+        const updatedEvents = { ...events };
+        const matchedTeam = teams.find(team => Number(team.teamId) === Number(teamId));
+        const teamColor = matchedTeam?.teamColor || '#D6E6F5';
+        const teamName = matchedTeam?.teamName || '팀 일정';
+    
+        updatedEvents[selectedDate] = [
+          ...(updatedEvents[selectedDate] || []),
+          { event: newEvent, teamname: viewType === 'team' ? teamName : '개인 일정',     color: viewType === 'team' ? teamColor : myColor  // ✅ 여기 수정
+          }
+        ];
+    
+        if (viewType === 'team') {
+          setTeamEvents((prev) => ({ ...prev, [teamId]: updatedEvents }));
+        } else {
+          setUserEvents((prev) => ({ ...prev, [userId]: updatedEvents }));
+        }
+    
+        const token = localStorage.getItem('access_token');
+        const colorToUse = viewType === 'team' ? teamColor : myColor;
+    
+        const postData = {
+          title: newEvent,
+          startTime: selectedDate,
+          endTime: selectedDate,
+          color: myColor || '#D6E6F5',
+        };
+    
+        const endpoint = viewType === 'team' ? '/api/events/team' : '/api/events/personal';
+        const dataToSend = viewType === 'team' ? { ...postData, teamId: parseInt(teamId) } : postData;
+    
+        axios.post(endpoint, dataToSend, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+        .then(() => console.log(`✅ 일정 추가 성공 (${viewType})`))
+        .catch(err => console.error(`❌ 일정 추가 실패 (${viewType}):`, err));
+    
+        setNewEvent('');
+        setShowAddPopup(false);
+      };
+      useEffect(() => {
+        const colors = {};
+        teams.forEach(team => {
+          colors[team.teamId] = team.teamColor || '#D6E6F5';
+        });
+        setTeamColors(colors);
+      }, [teams]);
+      
+      useEffect(() => {
+        const token = localStorage.getItem('access_token');
+        if (!teamId) return;
+      
+        axios.get(`/api/events/team/${teamId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+        .then((res) => {
+          const fetchedEvents = {};
+          res.data.forEach(event => {
+            const start = new Date(event.startTime);
+            const end = new Date(event.endTime);
+            for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+              const dateStr = d.toISOString().split('T')[0];
+              if (!fetchedEvents[dateStr]) fetchedEvents[dateStr] = [];
+              fetchedEvents[dateStr].push({
+                event: event.title,
+                teamname: teams.find(t => t.teamId === event.teamId)?.teamName || '팀 일정',
+                color: teamColors[event.teamId] || '#D6E6F5',
+              });
+            }
+          });
+          setTeamEvents(prev => ({ ...prev, [teamId]: fetchedEvents }));
+          console.log("✅ 팀 일정 불러오기 성공");
+        })
+        .catch((err) => console.error('❌ 팀 일정 가져오기 실패:', err));
+      }, [teamId, teamColors]);
+
+      
+      useEffect(() => {
+  if (!myColor) return;  // 🎯 myColor가 로딩되지 않았으면 실행 안 함
+
+  const token = localStorage.getItem("access_token");
+  axios.get(`/api/events/personal`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+  .then((res) => {
+    const personalEventMap = {};
+    res.data.forEach(event => {
+      const start = new Date(event.startTime);
+      const end = new Date(event.endTime);
+      for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+        const dateStr = d.toISOString().split('T')[0];
+        if (!personalEventMap[dateStr]) personalEventMap[dateStr] = [];
+        personalEventMap[dateStr].push({
+          event: event.title,
+          teamname: "개인 일정",
+          color: event.color || myColor || '#D9D9D9',
+        });
+      }        
+    });
+    setUserEvents(prev => ({ ...prev, [userId]: personalEventMap }));
+    console.log("✅ 개인인 일정 불러오기 성공");
+
+  })
+  .catch((err) => console.error("❌ 개인 일정 가져오기 실패:", err));
+}, [ myColor]);
+
   
-      const updatedEvents = { ...events };
-      const teamName = viewType === 'team' ? teams.find(team => team.id === teamId)?.name || '팀 일정' : '개인 일정';
-  
-      updatedEvents[selectedDate] = [...(updatedEvents[selectedDate] || []), { event: newEvent, teamname: teamName }];
-  
-      if (viewType === 'team') {
-          setTeamEvents((prev) => ({
-              ...prev,
-              [teamId]: updatedEvents,
-          }));
-      } else {
-          setUserEvents((prev) => ({
-              ...prev,
-              [userId]: updatedEvents,
-          }));
-      }
-  
-      setNewEvent('');
-      setShowAddPopup(false);
-  };
     return (
       <div style={{ textAlign: 'center',position:'relative' }}>
       <div style={{display: "flex",  justifyContent: "center", width: "30vw",
@@ -122,7 +202,7 @@ const TeamCalendarWrapper = ({ teamId, userId, teams, userColor }) => {
               onMonthChange={handleMonthChange}
               openPopup={openPopup}
               teams={teams}
-              userColor={userColor}
+              userColor={myColor}
           />
       </div>
 
@@ -162,11 +242,12 @@ const TeamCalendarWrapper = ({ teamId, userId, teams, userColor }) => {
 
                       if (viewType === 'team') {
                           // 팀 일정일 경우, 팀 색상 가져오기
-                          eventColor = teams.find(team => team.name === event.teamname)?.color || '#D6E6F5';
-                        } else {
+                          eventColor =
+                          event.color || teams.find(team => team.name === event.teamname)?.color || '#D6E6F5';
+                                                } else {
                           // 개인 일정일 경우, 사용자 색상 적용
-                          eventColor = userColor;
-                      }
+                          eventColor = event.color || myColor || '#D6E6F5';  // ✅ 여기!!
+                        }
                         return (
                             <div 
                                 key={index} 
@@ -187,7 +268,6 @@ const TeamCalendarWrapper = ({ teamId, userId, teams, userColor }) => {
                 )}
             </div>
 
-            {/* 일정 추가 버튼 */}
             <button onClick={openAddPopup} 
                 className="input-name" 
                 style={{
@@ -237,7 +317,6 @@ const TeamCalendarWrapper = ({ teamId, userId, teams, userColor }) => {
                 />
             </div>
 
-            {/* 추가하기 버튼 (오른쪽 정렬) */}
             <div style={{ display: 'flex', justifyContent: 'flex-end', paddingRight: '1vw' }}>
                 <button
                     onClick={addEvent}

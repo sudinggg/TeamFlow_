@@ -2,11 +2,10 @@ import './App.css';
 import { useEffect, useState } from 'react';
 import Calendar from './calendar'; 
 import { useNavigate } from 'react-router-dom';
-import { HexColorPicker } from 'react-colorful'; // react-colorful 추가
+import { HexColorPicker } from 'react-colorful'; 
 import axios from 'axios';
-import Swal from 'sweetalert2';  // sweetalert2로 오류 메시지 처리
+import Swal from 'sweetalert2'; 
 import UserPopup from './UserPopup'; 
-
 
 function Main() {
     let title = 'TeamFlow';
@@ -18,11 +17,11 @@ function Main() {
     const [showTeamMakePopup, setTeamMakePopup] = useState(false); 
     const [selectedDate, setSelectedDate] = useState('');
     const [userImage, setUserImage] = useState(''); 
-    const [username, setUsername] = useState('김수진');
-    const [useremail, setUserEmail] = useState('user@naver.com');
-    const [userjob, setUserjob] = useState('프론트엔드');
-    const [usertime, setUserTime] = useState('10:00~18:00');
-    const [userId, setUserId] = useState(1); // 🔹 현재 로그인한 사용자 ID
+    const [username, setUsername] = useState('');
+    const [useremail, setUserEmail] = useState('');
+    const [userjob, setUserjob] = useState('');
+    const [usertime, setUserTime] = useState('');
+    const [userId, setUserId] = useState(""); // 🔹 현재 로그인한 사용자 ID
     const [userColor, setUserColor] = useState('#FFC0CB'); 
     const [selectedTeamIndex, setSelectedTeamIndex] = useState(null); // 선택된 팀 인덱스
     const [team_Name, setTeamName] = useState('');
@@ -36,7 +35,171 @@ function Main() {
     const [year, setYear] = useState(today.getFullYear());
     const [month, setMonth] = useState(today.getMonth() + 1);
     const day = today.getDate();
+    const [teams, setTeams] = useState([]);
+    const [allUsers, setAllUsers] = useState([]);
 
+    useEffect(() => {
+        if (!userId) return; // 🔐 userId 없으면 요청하지 않음
+
+        const token = localStorage.getItem("access_token");
+      console.log("token 확인:", localStorage.getItem("access_token"));
+
+        axios.get("/api/events/team-all", {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            
+          }
+        })
+        .then((res) => {
+          console.log("✅ 전체 일정:", res.data);
+      
+          const newTeamEvents = {};
+          const newUserEvents = {};
+      
+          res.data.forEach((teamBlock) => {
+            const teamId = teamBlock.teamId;
+            const teamColor = teamBlock.teamColor;
+          
+            teamBlock.events.forEach((event) => {
+              const start = new Date(event.startTime);
+              const end = new Date(event.endTime);
+          
+              for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+          
+                if (!newTeamEvents[teamId]) newTeamEvents[teamId] = {};
+                if (!newTeamEvents[teamId][dateStr]) newTeamEvents[teamId][dateStr] = [];
+          
+                newTeamEvents[teamId][dateStr].push({
+                  event: event.title,
+                  teamname: `team-${teamId}`, // ✅ 고유 식별 가능하게
+                  color: teamColor,
+                  teamId: teamId
+                });
+              }
+            });
+          });
+          
+          setTeamEvents(newTeamEvents);
+          setUserEvents(newUserEvents);
+        })
+        .catch((err) => {
+          console.error("❌ 전체 일정 조회 실패:", err);
+        });
+      }, [userId]); // userId가 설정된 뒤 실행
+      
+
+      useEffect(() => {
+      
+        const token = localStorage.getItem("access_token");
+      
+        axios.get(`/api/events/personal`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+          .then((res) => {
+            const personalEventMap = {};
+            res.data.forEach(event => {
+              const start = new Date(event.startTime);
+              const end = new Date(event.endTime);
+      
+              for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
+                const dateStr = d.toISOString().split('T')[0];
+                if (!personalEventMap[dateStr]) personalEventMap[dateStr] = [];
+      
+                personalEventMap[dateStr].push({
+                  event: event.title,
+                  teamname: "개인 일정",
+                  color: userColor,
+                });
+              }
+            });
+            console.log(" 개인 일정 가져오기 성공:", events);
+
+            setUserEvents(prev => ({
+              ...prev,
+              [userId]: personalEventMap
+            }));
+          })
+          .catch((err) => {
+            console.error("❌ 개인 일정 가져오기 실패:", err);
+          });
+      }, [userId]); // ✅ userId 없을 때 막기
+      
+    useEffect(() => {
+    const token = localStorage.getItem("access_token");
+    axios.get('/api/user/all', {
+        headers: {
+            Authorization: `Bearer ${token}`
+        }
+    })
+    .then((res) => {
+        console.log("✅ 전체 유저:", res.data); // 🔍 확인용
+
+        setAllUsers(res.data);
+    })
+    .catch((err) => {
+        console.error("❌ 전체 유저 목록 불러오기 실패:", err);
+    });
+}, []);
+    useEffect(() => {
+        const token = localStorage.getItem("access_token");
+
+        axios.get('/api/user/profile', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            }
+        })
+        .then(response => {
+            const data = response.data;
+            setUsername(data.username ?? "");
+            setUserEmail(data.email ?? "");
+            setUserjob(data.position ?? "");
+            setUserTime(data.contactTime ?? "");
+            setUserImage(data.profile ?? "");    
+            setUserId(data.userId ?? ""); 
+
+            console.log(" main 사용자 정보 조회 성공:", response);
+        })
+        .catch(error => {
+            console.error("main 사용자 정보 조회 실패:", error);
+        });
+    }, []);
+
+    const openUserPopup = () => {
+        setShowUserPopup(true);  // 팝업 띄우기
+    };
+
+    useEffect(() => {
+        if (!userId) return; 
+        
+        const token = localStorage.getItem("access_token");
+        console.log("✅ 현재 저장된 토큰:", token);
+        console.log("✅ 현재 로그인한 userId:", userId);
+        axios.get('/api/teams/my', {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+                // userId: userId,  // 백엔드에서 헤더로 요구하면 유지
+            }
+        })
+        .then(response => {
+            const mappedTeams = (response.data.myTeams || []).map(team => ({
+              ...team,
+              color: team.teamColor  // 🔥 teamColor → color 로 변환
+            }));
+            setTeams(mappedTeams);
+          })
+          
+        .catch(error => {
+            console.error("❌ 팀 정보 조회 실패:", error);
+            Swal.fire({
+                icon: 'error',
+                title: '팀 정보 불러오기 실패',
+                text: error.response?.data?.message || '팀 정보를 불러오는 중 오류가 발생했습니다.',
+            });
+        });
+    }, [userId]);  // ✅ userId가 바뀌면 실행되도록 의존성 추가
+    
     const calculateDday = (dateString) => {
         const selectedDate = new Date(dateString);
         const today = new Date();
@@ -55,17 +218,12 @@ function Main() {
             return `D-${daysDifference}`; // 남은 날짜
         }
     };
-    // 가짜 사용자 리스트 (임시 데이터)
-const mockUsers = [
+
+    const mockUsers = [
     { id: 'user1', name: '김철수' },
     { id: 'user2', name: '박영희' },
     { id: 'user3', name: '이민호' },
     { id: 'user4', name: '정다은' },
-    { id: 'user5', name: '최수진' },    { id: 'user1', name: '김철수' },
-    { id: 'user2s', name: '박영희' },
-    { id: 'users3', name: '이민호' },
-    { id: 'users4', name: '정다은' },
-    { id: 'users5', name: '최수진' },
 ];
 
 
@@ -77,11 +235,7 @@ const mockUsers = [
         image: userImage || '',
     };
 
-    const [teams, setTeams] = useState([
-        { id: '1', name: '수진이짱', color: 'red' },
-        { id: '2', name: 'TeamFlow', color: 'blue' },
-        { id: '3', name: 'Ewootz', color: 'green' },
-    ]);
+
 
     const [userEvents, setUserEvents] = useState({
         1: {
@@ -105,30 +259,38 @@ const mockUsers = [
             '2024-11-20': [{ event: '테스트 진행', teamname: 'Ewootz' }],
         },
     });
-// 🔹 검색어 입력 핸들링
-const handleSearchInput = (event) => {
-    setSearchInput(event.target.value);
-    setIsSearching(true); // 🔥 검색 중이므로 선택된 멤버 리스트 숨김
 
-    if (event.target.value.trim()) {
-        setFilteredUsers(mockUsers.filter(user => 
-            user.id.includes(event.target.value.trim()) && !search_user.includes(user.id)
-        ));
-    } else {
-        setFilteredUsers([]); // 검색어 없으면 리스트 숨김
-        setIsSearching(false); // 🔥 검색창이 비어있으면 검색 종료
-    }
-};
 
-const selectUser = (userId) => {
-    setFilteredUsers([]);  // 🔥 검색 결과 리스트 즉시 삭제
-    setSearchInput('');    // 🔥 입력창 초기화
-    setIsSearching(false); // 🔥 검색 상태 해제
+    const handleSearchInput = (event) => {
+        const value = event.target.value;
+        setSearchInput(value);
+        setIsSearching(true);
 
-    if (!search_user.includes(userId)) {
-        setSearchUser([...search_user, userId]); // 선택한 멤버 추가
-    }
-};
+        if (value.trim()) {
+            setFilteredUsers(
+                allUsers.filter(user =>
+                  user.userId && user.userId.includes(value.trim()) && !search_user.includes(user.userId)
+                )
+              );
+              
+              
+        } else {
+            setFilteredUsers([]);
+            setIsSearching(false);
+        }
+    };
+
+    const selectUser = (userId) => {
+        setFilteredUsers([]);
+        setSearchInput('');
+        setIsSearching(false);
+      
+        if (!search_user.includes(userId)) {
+          setSearchUser(prev => [...prev, userId]);
+        }
+      };
+      
+
 
 
     useEffect(() => {
@@ -233,10 +395,15 @@ const selectUser = (userId) => {
         setEvents(mergedEvents); 
     }, [teamEvents, userEvents, userId]);
     
-  const handleTeamClick = (teamId) => {
-    navigate(`/room/${teamId}`); // 클릭한 팀의 ID로 이동
-  };
-
+    const handleTeamClick = (teamId) => {
+        if (!teamId) {
+          console.warn("❌ 유효하지 않은 teamId로 이동을 시도함:", teamId);
+          return;
+        }
+        console.log("🚀 Navigating to: ", teamId);
+        navigate(`/room/${Number(teamId)}`);
+    };
+      
     const saveTeamname = event => {
         setTeamName(event.target.value);
         console.log(event.target.value);
@@ -247,28 +414,68 @@ const selectUser = (userId) => {
         console.log(event.target.value);
       };
 
-
       const addTeam = () => {
-        if (team_Name && team_Color && search_user.length >= 1) {
-            const newTeam = {
-                id: String(teams.length + 1),
-                name: team_Name,
-                color: team_Color,
-            };
-            setTeams([...teams, newTeam]);
+        const token = localStorage.getItem("access_token");
     
-            setTeamName('');
-            setTeamColor('#D6E6F5');
-            setSearchUser([]);
-            setSelectedTeamIndex(null);
-            setTeamMakePopup(false);
+        // ✅ 팀 이름 길이 제한 (띄어쓰기 포함 최대 5자)
+        if (team_Name.trim().length > 6) {
+            Swal.fire({
+                icon: 'warning',
+                text: '팀 이름은 공백 포함 최대 6자까지 입력 가능합니다.',
+            });
+            return;
+        }
+    
+        if (team_Name && team_Color && search_user.length >= 1) {
+            const requestBody = {
+                teamName: team_Name,
+                teamColor: team_Color,
+                ownerId: userId,
+                memberIds: search_user,
+            };
+    
+            axios.post('/api/teams', requestBody, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            })
+            .then((response) => {
+                Swal.fire({
+                    icon: 'success',
+                    title: '팀 생성 완료!',
+                    text: '새로운 팀이 추가되었습니다.',
+                });
+    
+                const newTeam = {
+                    teamId: response.data.teamId,
+                    teamName: team_Name,
+                    color: team_Color,
+                };
+    
+                setTeams(prevTeams => [...prevTeams, newTeam]);
+                setTeamName('');
+                setTeamColor('#D6E6F5');
+                setSearchUser([]);
+                setSelectedTeamIndex(null);
+                setTeamMakePopup(false);
+            })
+            .catch((error) => {
+                console.error("❌ 팀 생성 실패:", error);
+                Swal.fire({
+                    icon: 'error',
+                    title: '생성 실패',
+                    text: error.response?.data?.message || '팀 생성 중 오류가 발생했습니다.',
+                });
+            });
         } else {
             Swal.fire({
                 icon: 'warning',
-                text: '팀 이름 공백이면 안되고 팀원이 1명이상인지 확인하소',
+                text: '팀 이름은 공백일 수 없고, 팀원은 최소 1명 이상이어야 합니다.',
             });
         }
     };
+    
     return (
         <div className="white-line">
             <div className="hang">
@@ -292,7 +499,7 @@ const selectUser = (userId) => {
                         cursor: 'pointer',
                         boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
                     }}
-                    onClick={() => setShowUserPopup(true)} 
+                    onClick={openUserPopup}  // 팝업 열기
                 ></button>
             </div>
 
@@ -317,10 +524,9 @@ const selectUser = (userId) => {
                        {events[selectedDate] &&
                                 events[selectedDate].map((event, index) => {
                                     // 🔹 일정 색상 설정 (팀 일정은 팀 색상, 개인 일정은 개인 색상)
-                                    const team = teams.find((t) => t.name === event.teamname);
-                                    const eventColor =
-                                        event.teamname === '개인 일정' ? userColor : team?.color || '#D6E6F5';
-
+                                    const team = teams.find((t) => t.teamId === event.teamId);
+                                    const eventColor = event.teamname === '개인 일정' ? userColor : team?.color || '#D6E6F5';
+                                    
                                         return (
                                             <div
                                                 key={index}
@@ -344,7 +550,7 @@ const selectUser = (userId) => {
                         backgroundPosition: 'center',display: 'flex',justifyContent: 'center',alignItems: 'center',
                         cursor: 'pointer', boxShadow: '2px 2px 5px rgba(0, 0, 0, 0.2)',
                     }}
-                    onClick={() => setShowUserPopup(true)}
+                    onClick={openUserPopup} 
                 ></button>
                 <UserPopup isOpen={showUserPopup} onClose={() => setShowUserPopup(false)} user={user} />
                 {showTeamMakePopup && (
@@ -408,16 +614,26 @@ const selectUser = (userId) => {
                                          width: '30vw', height: '33vh',  borderRadius: '27px', marginTop: '1vh', border: '1px solid #ddd',padding: '10px'}}>
                                             {isSearching && filteredUsers.length > 0 ? (
                                                 <div style={{ width: '98%',  maxHeight: '30vh',  overflowY: 'auto',  padding: '10px' }}>
-                                                      {filteredUsers.map(user => (
-                                                         <div 
-                                                          key={user.id}
-                                                          style={{ padding: '10px', cursor: 'pointer', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between' }} >
-                                                            <span>{user.name} ({user.id})</span>
-                                                             <button style={{ background: 'lightblue', border: 'none', padding: '3px 7px', borderRadius: '5px', cursor: 'pointer' }}
-                                                             onClick={() => selectUser(user.id)} >
-                                                                  추가
-                                                                   </button>
-                                                                    </div>))} </div>
+                                                    {filteredUsers.map((user, index) => (
+                                                        <div 
+  key={`${user.userId}-${index}`}
+  style={{ padding: '10px', cursor: 'pointer', borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between' }}
+>
+  <span>{user.username} ({user.userId})</span>
+  <button
+    style={{
+      background: 'lightblue',
+      border: 'none',
+      padding: '3px 7px',
+      borderRadius: '5px',
+      cursor: 'pointer'
+    }}
+    onClick={() => selectUser(user.userId)}
+  >
+    추가
+  </button>
+</div>
+))} </div>
                                                                 ) : null}
                                                                 {!isSearching && search_user.length > 0 && (
                                                                     <div style={{  width: '100%', height: '100%',   overflowY: 'auto',padding: '10px'}}>
@@ -441,21 +657,24 @@ const selectUser = (userId) => {
                                                                                                   <div style={{ width: '3.5vw' }}></div>
                                                                                                    <div className="blue-box" style={{ width: '30vw', height: '60vh', backgroundColor: 'white' }}>
                                                                                                      <div className="hang" style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                                                                                        {Array(2)
-                                                                                                        .fill(null)
-                                                                                                        .map((_, index) => {
-                                                                                                            const team = teams[index];
-                                                                                                             return (
-                                                                                                                 <div  key={index}   
-                                                                                                                 onClick={() => {
-                                                                                                                      if (team) {
-                                                                                                                         console.log("Navigating to: ", team.id);  
-                                                                                                                         setSelectedTeamIndex(index); 
-                                                                                                                         handleTeamClick(team.id); 
-                                                                                                                         } else {
-                                                                                                                            setTeamMakePopup(true); 
-                                                                                                                            setSelectedTeamIndex(index);   }
-                                                                                                                         }}
+                                                                                                     {Array(2).fill(null).map((_, index) => {
+  const team = teams[index];
+
+  return (
+    <div
+      key={index}
+      onClick={() => {
+        if (Number.isInteger(team?.teamId)) {
+          console.log("🚀 Navigating to: ", team.teamId);
+          setSelectedTeamIndex(index); 
+          handleTeamClick(team.teamId); 
+        } else {
+          console.warn("❌ teamId가 없거나 잘못됨:", team);
+          setTeamMakePopup(true);
+          setSelectedTeamIndex(index + 2); 
+        }
+      }}
+
                                                                                                                           style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '0 1.3vw' }}
                                                                                                                           >
                                                                                                                             <button
@@ -463,7 +682,7 @@ const selectUser = (userId) => {
                                                                                                                             style={{backgroundColor: team?.color || '#D9D9D9', 
                                                                                                                                  margin: '5px',fontSize: team ? '16px' : '40px',position: 'relative',width: '7.5vw', height: '13vh',
                                                                                                                                  display: 'flex',justifyContent: 'center',alignItems: 'center',    }} >
-                                                                                                                                     {team?.name ? '' : '+'} 
+                                                                                                                                     {team?.teamName ? '' : '+'} 
                                                                                                                                        </button>
 
                     {team && (
@@ -473,7 +692,7 @@ const selectUser = (userId) => {
                                 fontSize: '15px',
                             }}
                         >
-                            {team.name}
+                            {team.teamName}
                         </p>
                     )}
                 </div>
@@ -490,10 +709,10 @@ const selectUser = (userId) => {
         <div
           key={index + 2}
           onClick={() => {
-            if (team && team.id) {
-              console.log("Navigating to: ", team.id);  
+            if (team && team.teamId) {
+              console.log("Navigating to: ", team.teamId);  
               setSelectedTeamIndex(index + 2); 
-              handleTeamClick(team.id); 
+              handleTeamClick(team.teamId); 
             } else {
               setTeamMakePopup(true);
               setSelectedTeamIndex(index + 2); // 선택한 팀 인덱스 설정
@@ -506,23 +725,23 @@ const selectUser = (userId) => {
             style={{
               backgroundColor: team.color || '#D9D9D9', // 팀이 없으면 기본 회색
               margin: '5px',
-              fontSize: team.name ? '16px' : '40px', // 팀이 있으면 글자 작게, 없으면 크게
+              fontSize: team.teamName ? '16px' : '40px', // 팀이 있으면 글자 작게, 없으면 크게
               position: 'relative',
               width: '7.5vw',
               height: '13vh',
             }}
           >
-            {team.name ? '' : '+'} {/* 팀 이름이 있으면 빈 문자열, 없으면 '+' 표시 */}
+            {team.teamName ? '' : '+'} {/* 팀 이름이 있으면 빈 문자열, 없으면 '+' 표시 */}
           </button>
 
-          {team.name && (
+          {team.teamName && (
             <p
               style={{
                 marginTop: '0.5vh',
                 fontSize: '15px',
               }}
             >
-              {team.name}
+              {team.teamName}
             </p>
           )}
         </div>
