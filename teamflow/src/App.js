@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import './App.css';
 import { BrowserRouter, Route, Routes, useNavigate, useParams } from 'react-router-dom';
-import axios from 'axios';  
 import Swal from 'sweetalert2';  
 import Join from './join'; 
 import Find from './find';  
 import Main from './main';
 import Room from "./room";
-import Call from './room/call'; // Call 경로 수정
+import Call from './room/call'; 
 import MyPage from "./mypage";
 import Setting from "./setting";
+import axios from 'axios';
+axios.defaults.baseURL = 'http://3.37.129.52:8080'; 
 
 const Home= () => {  
   let title = 'TeamFlow';
@@ -20,39 +21,48 @@ const Home= () => {
   const saveUserId = (e) => setId(e.target.value);
   const saveUserPw = (e) => setPw(e.target.value);
 
+  function Login() {
+    const formData = {
+      userId: id,
+      password: pw,
+    };
+  
+    axios.post('/api/auth/login', formData, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then((response) => {
+        console.log("🧾 전체 응답:", response);
+        console.log("📦 응답 데이터:", response.data);
+  
+        const token = response.data.token; 
+        if (token) {
+          localStorage.setItem("id", id);
+          localStorage.setItem("access_token", token);
+          console.log("🎟️ 로그인 성공! 발급된 토큰:", token);
 
-function Login() {
-  // 로그인 요청 시 콘솔로 입력된 값 확인
-  console.log("로그인 시도:", id, pw);
-  // 실제 로그인 로직 추가 (서버와의 통신)
-  axios.post('/api/auth/token', {
-    username: id,
-    password: pw
-  })
-  .then((response) => {
-    if (response.status === 200) {
-      localStorage.setItem('id', id);
-      localStorage.setItem('access_token', response.data.access_token);
-      navigate(`/main/${id}`);  // 로그인 후 메인 페이지로 이동
-      console.log("로그인 성공");
-    } else {
-      Swal.fire({
-        icon: 'error',
-        title: '로그인 실패',
-        text: '아이디나 패스워드를 다시 확인해주세요!',
+          navigate(`/main`);
+        } else {
+          console.warn("⚠️ token이 응답에 없습니다.");
+          Swal.fire({
+            icon: "error",
+            title: "로그인 실패",
+            text: "서버 응답이 예상과 다릅니다.",
+          });
+        }
+      })
+      .catch((error) => {
+        console.error("❌ 로그인 에러:", error.response || error.message);
+        Swal.fire({
+          icon: "error",
+          title: "로그인 실패",
+          text: "아이디나 비밀번호를 다시 확인해주세요.",
+        });
       });
-    }
-  })
-  .catch((error) => {
-    console.error('로그인 요청 오류:', error);
-    Swal.fire({
-      icon: 'error',
-      title: '로그인 실패',
-      text: '아이디나 패스워드를 다시 확인해주세요!',
-    });
-  });
-};
-
+  }
+  
+  
   return (
     <div className='white-line'>
   <p style={{ color: 'black', fontSize: 53, fontWeight: 'bold', marginBottom:'16px',  textShadow: '2px 2px 5px rgba(0, 0, 0, 0.4)'}}>
@@ -84,8 +94,8 @@ function Login() {
           />
         </div>
         <div style={{ height: '5vh' }}></div>
-        <button className="login-gray" style={{ fontSize: "30px", fontWeight:500 }} onClick={() => navigate("/main")}
- /*onClick={Login}*/>
+        <button className="login-gray" style={{ fontSize: "30px", fontWeight:500 }} 
+ onClick={Login}>
           로그인
         </button>
         <div style={{ height: '8vh' }}></div>

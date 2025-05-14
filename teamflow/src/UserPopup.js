@@ -1,9 +1,29 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Swal from "sweetalert2";
+import axios from "axios";
 
-const UserPopup = ({ isOpen, onClose, user }) => {
+const UserPopup = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const [user, setUser] = useState({});
+
+  // 🔹 사용자 프로필 불러오기
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const token = localStorage.getItem("access_token");
+    axios.get("/api/user/profile", {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => {
+      setUser(res.data);
+    })
+    .catch((err) => {
+      console.error("❌ 사용자 정보 가져오기 실패:", err);
+    });
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -20,10 +40,7 @@ const UserPopup = ({ isOpen, onClose, user }) => {
       cancelButtonText: "아니오"
     }).then((result) => {
       if (result.isConfirmed) {
-        // 🔹 로그아웃 처리 (예: 토큰 삭제)
         localStorage.removeItem("access_token");
-        
-        // 🔹 App.js (로그인 페이지 등)로 이동
         navigate("/");
       }
     });
@@ -43,13 +60,13 @@ const UserPopup = ({ isOpen, onClose, user }) => {
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
           <img
-            src={user.image} alt="User"
+            src={user.profile} alt="User"
             style={{ width: '6.5vw', height: '12vh', borderRadius: '50%', backgroundColor: 'white', marginBottom: '0.5vh' }}
           />
-          <p style={{ fontWeight: 'bold', margin: '0.5vh', fontSize: '22px' }}>{user.name}</p>
+          <p style={{ fontWeight: 'bold', margin: '0.5vh', fontSize: '22px' }}>{user.username}</p>
           <p style={{ margin: '2px 0' }}>{user.email}</p>
-          <p style={{ margin: '2px 0' }}>{user.job}</p>
-          <p style={{ margin: '2px 0' }}>{user.time}</p>
+          <p style={{ margin: '2px 0' }}>{user.position}</p>
+          <p style={{ margin: '2px 0' }}>{user.contactTime}</p>
         </div>
 
         <div>

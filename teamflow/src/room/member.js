@@ -1,11 +1,35 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
 
 const Member = ({ members }) => {
   const [showTeamMakePopup, setTeamMakePopup] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [teamMembers, setTeamMembers] = useState(members);
+  const [allUsers, setAllUsers] = useState([]); // 🔥 모든 사용자 저장
+  const myUserId = localStorage.getItem('userId');
+  const userColor = '#FFC0CB'; // 👉 실제 개인 색상 state에서 받아오도록 하면 좋아요
 
+  useEffect(() => {
+    if (showTeamMakePopup) {
+      const token = localStorage.getItem("access_token");
+      axios.get('/api/user/all', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      })
+      .then(response => {
+        console.log("✅ 전체 유저 목록:", response.data); // 🔍 콘솔 출력 추가
+
+        setAllUsers(response.data || []);
+      })
+      .catch(error => {
+        console.error("❌ 모든 사용자 불러오기 실패:", error);
+      });
+    }
+  }, [showTeamMakePopup]);
   const handleSearchChange = (e) => {
     const term = e.target.value;
     setSearchTerm(term);
@@ -13,12 +37,22 @@ const Member = ({ members }) => {
   };
 
   const filterMembers = (term) => {
-    // 여기에 검색 로직을 넣습니다. 예시로 이름으로 필터링.
-    const results = members.filter((member) =>
-      member.name.toLowerCase().includes(term.toLowerCase())
-    );
+    if (!term.trim()) {
+      setSearchResults([]); // 입력 없으면 결과도 없음
+      return;
+    }
+  
+    const lowerTerm = term.toLowerCase();
+
+    const results = allUsers.filter((user) => {
+      const isAlreadyMember = teamMembers.some((member) => member.userId === user.userId);
+      const matchesSearch = user.userId?.toLowerCase().includes(lowerTerm); // ✅ userId로 검색
+      return !isAlreadyMember && matchesSearch;
+    });
+    
     setSearchResults(results);
   };
+  
 
   const handleAddMember = (member) => {
     setTeamMembers((prevMembers) => [...prevMembers, member]);
@@ -46,28 +80,60 @@ const Member = ({ members }) => {
       <div
         style={{ overflowY: 'auto',maxHeight: '78vh', padding: '0.7vw',
         }} >
-        {teamMembers?.map((member, index) => (
-          <div
-            key={index}
-            style={{ padding: '1vw', borderBottom: '1px solid #D9D9D9',marginBottom: '0.7vh', }} >
-            <div
-              style={{display: 'flex',alignItems: 'center',marginBottom: '1.5vh',
-              }}
-            >
-              <div
-                style={{ width: '1.5vw', height: '1.5vw', borderRadius: '50%', backgroundColor: member.color || 'gray', marginRight: '1vw',  }}
-              ></div>
-              <span style={{ fontWeight: 'bold', fontSize: '18px' }}> {member.name}
-              </span>
-            </div>
-            <div style={{ fontSize: '15px', marginTop: '1vh', marginLeft: '4vw' }}>
-              Email: {member.email}
-            </div>
-            <div style={{ fontSize: '15px', marginTop: '1vh', marginLeft: '4vw' }}>
-              Position: {member.position}
-            </div>
-          </div>
-        ))}
+      {teamMembers?.map((member, index) => (
+  <div
+    key={index}
+    style={{
+      padding: '1vw',
+      borderBottom: '1px solid #D9D9D9',
+      marginBottom: '0.5vh',
+    }}
+  >
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        marginBottom: '1.5vh',
+      }}
+    >
+      {member.profile ? (
+        <img
+          src={member.profile}
+          alt="profile"
+          style={{
+            width: '3vw',
+            height: '3vw',
+            borderRadius: '50%',
+            objectFit: 'cover',
+            marginRight: '1vw',
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: '2.5vw',
+            height: '2.5vw',
+            borderRadius: '50%',
+            backgroundColor: 'white',
+            border: '2px solid black',
+            marginRight: '1vw',
+          }}
+        ></div>
+      )}
+      <span style={{ fontWeight: 'bold', fontSize: '20px', paddingBottom:"1vh" }}>
+        {member.username}
+      </span>
+    </div>
+    <div style={{paddingBottom:"1vh",marginTop:"-1vh"}}>
+    <div style={{ fontSize: '15px', marginLeft: '4.5vw' }}>
+      Email: {member.email || '없음'}
+    </div>
+    <div style={{ fontSize: '15px', marginTop: '1vh', marginLeft: '4.5vw' }}>
+      Position: {member.position || '없음'}
+    </div></div>
+  </div>
+))}
+
       </div>
       {showTeamMakePopup && (
         <div className="popup-overlay">
@@ -100,11 +166,34 @@ const Member = ({ members }) => {
                  key={index}
                  style={{
                   display: 'flex',justifyContent: 'space-between',padding: '1.3vw',}} >
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
-                      <div style={{ width: '1.5vw',height: '1.5vw', borderRadius: '50%',backgroundColor: member.color || 'gray',
-              marginRight: '1vw', }} ></div>
-               <span>{member.name}</span>
-               </div>
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+  {member.profile ? (
+    <img
+    src={member.profile ?? ''}
+    alt="profile"
+      style={{
+        width: '1.5vw',
+        height: '1.5vw',
+        borderRadius: '50%',
+        objectFit: 'cover',
+        marginRight: '1vw',
+      }}
+    />
+  ) : (
+    <div
+      style={{
+        width: '1.5vw',
+        height: '1.5vw',
+        borderRadius: '50%',
+        backgroundColor: '#d9d9d9',
+        border: '2px solid black',
+        marginRight: '1vw',
+      }}
+    ></div>
+  )}
+  <span>{member.username}</span>
+</div>
+
                <button onClick={() => handleAddMember(member)}className="close-button"
                 style={{ color: 'gray', fontSize: '18px' }} >+</button></div>
                ))) : (

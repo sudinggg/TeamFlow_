@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';  
 import Swal from 'sweetalert2';  
 import { useNavigate } from 'react-router-dom';
+
 function Join() {
     let title = 'TeamFlow';
     const navigate = useNavigate();
@@ -35,6 +36,7 @@ function Join() {
     const saveUserEmail = (event) => {
         setEmail(event.target.value);
       };
+
     useEffect(() => {
       if (repw && pw != repw) {
         setIsPasswordMatch("비밀번호가 일치하지 않습니다.");
@@ -49,14 +51,12 @@ function Join() {
               title: '아이디를 적어주세요',
               text: '아이디를 입력해야 중복확인 할 수 있습니다.',
             });
-            return;  // 아이디가 비어있으면 함수 실행을 종료
+            return;  
           }
-        
-      axios.post(
-        `/api/users/duplicate?username=${id}`,
-        {
-          'headers': { 'Content-Type': 'application/json' }
-        }
+            axios.post(
+              '/api/user/duplicate',
+              { userId: id },
+              { headers: { 'Content-Type': 'application/json' } }
       ).then((response) => {
         if (response.status == 200) {
           Swal.fire({
@@ -81,16 +81,19 @@ function Join() {
       });
       return;
     }
-    axios
-      .post(`/api/users/duplicate-email?email=${email}`, {
-        headers: { 'Content-Type': 'application/json' },
-      })
-      .then((response) => {
+    axios.post(
+      '/api/user/duplicate-email',
+      { email: email },
+      { headers: { 'Content-Type': 'application/json' } }
+    )    
+    .then((response) => {
+      if (response.status == 200) {
         Swal.fire({
-          icon: 'success',
-          text: '사용 가능한 이메일입니다!',
-        });
-      })
+          icon: "success",
+          text: "사용가능한 아이디입니다!",
+      });
+      }
+    })
       .catch((error) => {
         Swal.fire({
           icon: 'warning',
@@ -99,51 +102,56 @@ function Join() {
         });
       });
   };
-    function Signup() {
-      if (!id || !pw || !repw || !name) {
-        Swal.fire({
-          icon: "error",
-          title: "회원가입 실패",
-          text: "모든 항목을 입력해주세요!",
+  function Signup() {
+    if (!id || !pw || !repw || !name || !email) {
+      Swal.fire({
+        icon: "error",
+        title: "회원가입 실패",
+        text: "모든 항목을 입력해주세요!",
       });
-      } else if (pw !== repw) {
-        Swal.fire({
-          icon: "warning",
-          title: "회원가입 실패",
-          text: "비밀번호가 일치하지 않습니다.",
+    } else if (pw !== repw) {
+      Swal.fire({
+        icon: "warning",
+        title: "회원가입 실패",
+        text: "비밀번호가 일치하지 않습니다.",
       });
-      } else {
-        axios.post(
-          '/api/users/signup',
-          { "username": id, "password": pw, "fullname": name },
-          {
-            'headers': { 'Content-Type': 'application/json' }
-          }
-        ).then((response) => {
-          if (response.status == 201) {
-            Swal.fire({
-              icon: "success",
-              title: "회원가입 성공!",
-              text: "로그인 해주세요!",
+    } else {
+      axios.post(
+        '/api/user/join',
+        {
+          userId: id,         
+          username: name,   
+          password: pw,    
+          email: email 
+        },
+        {
+          headers: { 'Content-Type': 'application/json' }
+        }
+      ).then((response) => {
+        if (response.status === 201 || response.status === 200) {
+          console.log("✅ POST 성공:", response); 
+          Swal.fire({
+            icon: "success",
+            title: "회원가입 성공!",
+            text: "로그인 해주세요!",
           });
-            navigate("/");
-            console.log("회원가입 성공");
-          }
-          else {
-            Swal.fire({
-              icon: "warning",
-              title: "회원가입 실패",
-          });
-          }
-        }).catch((error) => {
-          console.log(error.response);
+          navigate("/");
+        } else {
           Swal.fire({
             icon: "warning",
             title: "회원가입 실패",
+          });
+        }
+      }).catch((error) => {
+        console.log(error.response);
+        Swal.fire({
+          icon: "error",
+          title: "회원가입 실패",
+          text: error.response?.data?.message || "서버 오류가 발생했습니다.",
         });
-        });
-      }
+      });
     }
+  }
     return (
         <div className='white-line'>
        <p style={{ color: 'black', fontSize: 53, fontWeight: 'bold', marginBottom:'16px',  textShadow: '2px 2px 5px rgba(0, 0, 0, 0.4)'}}    onClick={() => navigate('/')} 

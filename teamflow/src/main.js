@@ -157,6 +157,8 @@ function Main() {
             setUserTime(data.contactTime ?? "");
             setUserImage(data.profile ?? "");    
             setUserId(data.userId ?? ""); 
+            setUserColor(data.myColor ?? "#FFC0CB");
+
 
             console.log(" main 사용자 정보 조회 성공:", response);
         })

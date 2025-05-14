@@ -20,8 +20,8 @@ const MeetingMain = ({ meetingRecords, onSelectMeeting, onNewMeeting }) => {
         ) : (
           meetingRecords.map((record) => (
             <div
-              key={record.title}
-              onClick={() => onSelectMeeting(record.title)}
+            key={record.logId}
+            onClick={() => onSelectMeeting(record.logId)}
               style={{
                 cursor: "pointer",
                 padding: "15px 20px",
