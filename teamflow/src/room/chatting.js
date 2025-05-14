@@ -1,14 +1,17 @@
 import React, { useState, useRef, useEffect } from "react";
 import { AiOutlinePaperClip, AiOutlineSend } from "react-icons/ai";
+import SockJS from "sockjs-client";
+import { Client } from "@stomp/stompjs";
 
-const Chatting = ({ teamId }) => {
+const Chatting = ({ teamId,userId,senderName,teamMembers}) => {
+  console.log("📡 WebSocket 주소 확인:", process.env.REACT_APP_BACKEND_URL);
 
   console.log("채팅방 입장"); 
 
-  const [messages, setMessages] = useState([
-    { id: 1, sender: "other", text: `안녕하세요 ${teamId} 번 채팅방입니다` },
-  ]);
+  const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const stompClientRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
   const [attachedFiles, setAttachedFiles] = useState([]); // 첨부된 파일 리스트
   const textAreaRef = useRef(null);
   const chatContainerRef = useRef(null);
@@ -24,7 +27,6 @@ const Chatting = ({ teamId }) => {
     const files = Array.from(e.target.files);
     setAttachedFiles([...attachedFiles, ...files]); // 기존 파일 유지하며 추가
   };
-
   // 선택한 파일 삭제 기능
   const removeFile = (index) => {
     setAttachedFiles(attachedFiles.filter((_, i) => i !== index));
@@ -45,56 +47,113 @@ const MAX_LOCAL_STORAGE_SIZE = 4500 * 1024; // 최대 4.5MB
       console.log("✅ 정리 후 localStorage 사용량:", JSON.stringify(storedFiles).length / 1024, "KB");
   }
   
-  cleanOldFiles(); // 오래된 파일 정리 실행
-  
-  const handleSendMessage = async () => {
-    console.log("🔥 handleSendMessage 실행됨!");
+  useEffect(() => {
+    cleanOldFiles();
+  }, []);
 
-    if (newMessage.trim() === "" && attachedFiles.length === 0) {
-        console.log("❌ 메시지와 파일이 모두 없음 → 저장 안 함!");
-        return;
+ useEffect(() => {
+  const token = localStorage.getItem("access_token"); // ✅ 이걸로 변경
+  console.log("🛂 accessToken 확인:", token); // 🔍 토큰 출력
+
+  fetch(`${process.env.REACT_APP_BACKEND_URL}/api/chat/team/${teamId}`, {
+    headers: {
+      Authorization: `Bearer ${token}`
     }
+  })
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("응답 실패");
+      }
+      return res.json();
+    })
+    .then((data) => {
+      const loadedMessages = data.map((msg) => ({
+        id: msg.id,
+        sender: msg.senderId === userId ? "me" : "other",
+        text: msg.content,
+      }));
+      setMessages(loadedMessages);
+      localStorage.setItem(`team-${teamId}-messages`, JSON.stringify(loadedMessages));
+    })
+    .catch((err) => console.error("❌ 초기 메시지 불러오기 실패:", err));
+}, [teamId, userId]);
 
-    // ✅ Blob URL 생성 (Base64 대신 사용)
-    const blobFiles = attachedFiles.map(file => ({
-        name: file.name,
-        type: file.type,
-        url: URL.createObjectURL(file), // Blob URL 사용
-        teamId: teamId,
-    }));
 
-    // ✅ 기존 데이터 불러오기
-    let storedFiles = JSON.parse(localStorage.getItem("teamFiles")) || [];
+  useEffect(() => {
+    localStorage.setItem(`team-${teamId}-messages`, JSON.stringify(messages));
+  }, [messages, teamId]);
 
-    // ✅ 저장 전에 크기 검사
-    if (JSON.stringify([...storedFiles, ...blobFiles]).length > MAX_LOCAL_STORAGE_SIZE) {
-        console.warn("🚨 저장 공간 부족! 파일을 정리해야 함!");
-        cleanOldFiles(); // 용량 초과 시 오래된 파일 삭제
-    }
-
-    storedFiles = JSON.parse(localStorage.getItem("teamFiles")) || []; // 다시 불러오기
-    const updatedFiles = [...storedFiles, ...blobFiles];
-
-    // ✅ localStorage 저장
-    localStorage.setItem("teamFiles", JSON.stringify(updatedFiles));
-
-    console.log("📁 localStorage 저장됨!", updatedFiles);
-
-    // ✅ **messages 상태 업데이트 (UI에 표시)**
-    const newMessageData = {
-        id: messages.length + 1,
-        sender: "me",
-        text: newMessage,
-        files: blobFiles,
+  useEffect(() => {
+    const socket = new SockJS(`${process.env.REACT_APP_BACKEND_URL}/ws`);
+    const client = new Client({
+      webSocketFactory: () => socket,
+      reconnectDelay: 5000, // 🔁 5초 간격 재시도
+      debug: (str) => console.log(str),
+      onConnect: () => {
+        console.log("🟢 WebSocket 연결됨");
+        setIsConnected(true);
+        client.subscribe(`/topic/team/${teamId}`, (message) => {
+          console.log("📥 수신된 메시지 전체:", message.body);
+          const received = JSON.parse(message.body);
+          console.log("📦 파싱된 메시지:", received);
+          console.log("👤 받은 senderId:", received.senderId, "| 내 userId:", userId);
+          
+        
+          // ✅ 내가 보낸 메시지는 무시
+          if (received.senderId === userId) return;
+        
+          setMessages((prev) => [
+            ...prev,
+            { id: Date.now(), sender: "other", text: received.content },
+          ]);
+        });
+      },
+     
+    });
+    client.onStompError = (frame) => {
+      console.error("❌ STOMP 오류:", frame.headers['message']);
+      console.error("📄 상세:", frame.body);
     };
+    
+    client.activate();
+    stompClientRef.current = client;
 
-    setMessages(prevMessages => [...prevMessages, newMessageData]); // 💡 UI 업데이트
+    return () => {
+      client.deactivate();
+      console.log("🔌 WebSocket 연결 해제");
+    };
+  }, [teamId]);
 
-    // ✅ 입력 필드 초기화
+  const handleSendMessage = () => {
+    if (!isConnected) {
+      console.warn("❌ 아직 WebSocket 연결 안됨!");
+      return;
+    }
+      
+    if (!stompClientRef.current || !stompClientRef.current.connected) {
+      console.warn("❌ STOMP 연결되지 않음!");
+      return;
+    }
+  
+    const chatMessage = {
+      senderId: userId, 
+      teamId: teamId,
+      senderName: senderName || "익명",
+      content: newMessage,
+    };
+  
+    stompClientRef.current.publish({
+      destination: `/app/team.sendMessage/${teamId}`,
+      body: JSON.stringify(chatMessage),
+    });
+  
+    setMessages((prev) => [
+      ...prev,
+      { id: Date.now(), sender: "me", text: newMessage },
+    ]);
     setNewMessage("");
-    setAttachedFiles([]); // 파일 초기화
-};
-
+  };
+  
   const handleKeyDown = (e) => {
     console.log("⌨️ 키 입력 감지됨:", e.key); // ✅ 모든 키 입력을 감지
 

@@ -34,7 +34,7 @@ const Room = () => {
     time: "",
     image: "", // 프로필 URL
   });
-  
+
   useEffect(() => {
     const token = localStorage.getItem('access_token');
     
@@ -46,12 +46,13 @@ const Room = () => {
       .then((res) => {
         const data = res.data;
         setUser({
+          userId: data.userId, // ✅ 이거 추가
           name: data.username ?? "사용자",
           email: data.email ?? "이메일 없음",
           job: data.position ?? "직책 없음",
           time: data.contactTime ?? "근무시간 없음",
           image: data.profile ?? "",
-          color: data.myColor ?? "#D6E6F5", // ← 추가!
+          color: data.myColor ?? "#D6E6F5",
         });
         
       })
@@ -60,8 +61,8 @@ const Room = () => {
       });
   }, []);
   
-const userId = "1";
-const [teamEvents, setTeamEvents] = useState({});
+  const userId = parseInt(localStorage.getItem("userId"), 10); // 🔐 로그인 기반이라면 이렇게!
+  const [teamEvents, setTeamEvents] = useState({});
 const [userEvents, setUserEvents] = useState({});
 const [events, setEvents] = useState({}); // 🔹 병합된 캘린더 이벤트 상태
 
@@ -432,7 +433,7 @@ const dmItems = teamData?.members?.map((member) => member.username) || [];
                     onClick={() => setShowUserPopup(true)} 
                 ></button></div>
             </div>
-            {activeSection === 'chatting' && <Chatting teamId={teamData.teamId} />}
+            {activeSection === 'chatting' && <Chatting teamId={teamData.teamId} userId={user.userId} senderName={user.name}teamMembers={teamData?.members || []} />}
             {activeSection === 'teamcalendar' && <TeamCalendar teamId={teamData.teamId} userId={userId} userColor={userColor}events={events}teams={[teamData]}     />}
             {activeSection === 'dmMain' && (<DMMain teamId={teamData.teamId} teamMembers={teamData?.members || []} onSelectDM={(member) => handleDropdownItemClick('dm', member.name)} />)}
               {activeSection === 'dm' && selectedItem && <DM selectedItem={selectedItem} teamId={teamData.teamId} />}
